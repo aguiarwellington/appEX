@@ -1,0 +1,51 @@
+# Delphi generated files
+*.dcu
+*.dsk
+*.local
+*.identcache
+*.tvsconfig
+*.stat
+__history/
+
+# Delphi build folders (Android, iOS, Windows)
+*/Android32/Debug/
+*/Android32/Release/
+*/Android64/Debug/
+*/Android64/Release/
+*/iOSDevice/Debug/
+*/iOSDevice/Release/
+*/iOSSimulator/Debug/
+*/iOSSimulator/Release/
+*/Win32/Debug/
+*/Win32/Release/
+*/Win64/Debug/
+*/Win64/Release/
+
+# Delphi output files
+*.exe
+*.dll
+*.a
+*.so
+*.dylib
+*.apk
+*.aab
+*.zip
+*.log
+*.tmp
+*.bak
+*.map
+*.dproj.local
+
+# FireDAC connection definition files
+*.conn.ini
+
+# Node (caso use alguma API em Node.js no AppEx)
+node_modules/
+dist/
+
+# Boss (Delphi Package Manager) cache
+boss-lock.json
+
+# Outras coisas comuns a ignorar
+*.DS_Store
+Thumbs.db
