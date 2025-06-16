@@ -87,6 +87,8 @@ type
     Label4: TLabel;
     lblMessage: TLabel;
     SBNovaConta: TScrollBox;
+    showPassword1: TImageControl;
+    showPassword: TImageControl;
 
     procedure btnEntrarClick(Sender: TObject);
     procedure lblNovaContaClick(Sender: TObject);
@@ -99,6 +101,19 @@ type
     procedure FormCreate(Sender: TObject);
     procedure FormVirtualKeyboardShown(Sender: TObject;
       KeyboardVisible: Boolean; const Bounds: TRect);
+    procedure ShowSenhaClick(Sender: TObject);
+    procedure ShowPasswordClick(Sender: TObject);
+    procedure showPassword1Click(Sender: TObject);
+    procedure edtNomeKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtUltimoNomeKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtEmailCadastroKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtSenhaCadKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtEmailKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
   private
      AlturaOriginalLayout4: Single;
      CadastroOk: Boolean;
@@ -246,6 +261,22 @@ end;
 
 
 
+procedure TfrmLogin.ShowPasswordClick(Sender: TObject);
+begin
+  if edtSenhaCad.Password then
+    edtSenhaCad.Password := false
+  else
+  if edtSenhaCad.Password = false then
+    edtSenhaCad.Password := true
+  else
+     edtSenhaCad.Password := false;
+end;
+
+procedure TfrmLogin.ShowSenhaClick(Sender: TObject);
+begin
+     edtSenhaCad.Password := false;
+end;
+
 procedure TfrmLogin.AjustarScroll(Sender: TObject);
 begin
   if (Sender is TControl) and Assigned(SBNovaConta) then
@@ -266,6 +297,41 @@ begin
   finally
     Ini.Free;
   end;
+end;
+
+procedure TfrmLogin.edtEmailCadastroKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if key = vkReturn then
+    edtSenhaCad.SetFocus;
+end;
+
+procedure TfrmLogin.edtEmailKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+     if Key = vkReturn then
+    edtSenha.SetFocus;
+end;
+
+procedure TfrmLogin.edtNomeKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+  if Key = vkReturn then
+    edtUltimoNome.SetFocus;
+end;
+
+procedure TfrmLogin.edtSenhaCadKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+  if key = vkReturn then
+    edtSenhaCad.SetFocus;
+end;
+
+procedure TfrmLogin.edtUltimoNomeKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if key = vkReturn then
+    edtEmailCadastro.SetFocus;
 end;
 
 procedure TfrmLogin.BiometricAuthAuthenticateSuccess(Sender: TObject);
@@ -293,6 +359,17 @@ begin
   end;
 end;
 
+
+procedure TfrmLogin.showPassword1Click(Sender: TObject);
+begin
+  if edtSenha.Password then
+    edtSenha.Password := false
+  else
+  if edtSenha.Password = false then
+    edtSenha.Password := true
+  else
+     edtSenha.Password := false;
+end;
 
 procedure TfrmLogin.BiometricAuthAuthenticateFail(Sender: TObject;
   const FailReason: TBiometricFailReason; const ResultMessage: string);

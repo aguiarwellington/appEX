@@ -19,6 +19,7 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
       inherited Layout2: TLayout
         inherited rectEmail: TRectangle
           inherited btnAcessarEmail: TSpeedButton
+            Size.Height = 50.000000000000000000
             TextSettings.Font.StyleExt = {00060000000000000004000000}
           end
         end
@@ -59,7 +60,13 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
             TextSettings.Font.StyleExt = {00060000000000000004000000}
           end
           inherited edtSenhaCad: TEdit
+            Padding.Top = 5.000000000000000000
             Size.Width = 415.000000000000000000
+            inherited showPassword: TImageControl
+              Position.X = 372.000000000000000000
+              Position.Y = 5.000000000000000000
+              Size.Height = 26.000000000000000000
+            end
           end
           inherited rectCriarConta: TRectangle
             Size.Width = 435.000000000000000000
@@ -107,6 +114,7 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
         end
         inherited rectEntrar: TRectangle
           inherited btnEntrar: TSpeedButton
+            Size.Height = 50.000000000000000000
             TextSettings.Font.StyleExt = {00060000000000000004000000}
           end
         end
@@ -122,6 +130,7 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
         Size.Width = 460.000000000000000000
         inherited SpeedButton1: TSpeedButton
           Size.Width = 450.000000000000000000
+          Size.Height = 41.000000000000000000
           TextSettings.Font.StyleExt = {00060000000000000004000000}
         end
       end
