@@ -14,7 +14,10 @@ uses
   DadosCadastraisClass in 'model\DadosCadastraisClass.pas',
   dmMeiDados in 'model\dmMeiDados.pas' {DataModuleMei: TDataModule},
   uPermission in 'ultils\uPermission.pas',
-  UnitConfiguracoesGerais in 'views\Config\UnitConfiguracoesGerais.pas' {frmConfigGerais};
+  UnitConfiguracoesGerais in 'views\Config\UnitConfiguracoesGerais.pas' {frmConfigGerais},
+  FMessageComponents in 'components\FMessageComponents.pas' {MessageComponents: TFrame},
+  FMessageSucessComponents in 'components\FMessageSucessComponents.pas' {FrMessageSucessComponents: TFrame},
+  unitUtilsCode in 'ultils\unitUtilsCode.pas';
 
 {$R *.res}
 

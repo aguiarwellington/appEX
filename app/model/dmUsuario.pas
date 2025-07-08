@@ -47,13 +47,12 @@ begin
       jsonRequest.AddPair('password', senha);
 
       resp := TRequest.New
-        .BaseURL(baseURL)
-        .Resource('/usuarios/register')
+         .BaseURL(baseURL + '/usuarios/register')
         .AddBody(jsonRequest.ToString)
         .Accept('application/json')
         .Post;
 
-      if resp.StatusCode = 200 then
+      if resp.StatusCode = 201 then
       begin
         jsonResponse := TJSONObject.ParseJSONValue(resp.Content) as TJSONObject;
         try
@@ -83,7 +82,6 @@ begin
     jsonRequest.Free;
   end;
 end;
-
 
 procedure Tdm.Login(email, senha: string);
 var

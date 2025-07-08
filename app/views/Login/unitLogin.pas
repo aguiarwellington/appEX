@@ -44,7 +44,9 @@ uses
    System.Types,
  // FMX.BiometricAuth,
   System.IOUtils,
-  System.IniFiles, FMX.BiometricAuth;
+  System.IniFiles, FMX.BiometricAuth,
+  FMessageComponents,
+  FMessageSucessComponents;
 
 type
   TfrmLogin = class(TForm)
@@ -60,7 +62,7 @@ type
     Label10: TLabel;
     edtSenhaCad: TEdit;
     rectCriarConta: TRectangle;
-    btnCriarConta: TSpeedButton;
+    btnCriarOk: TSpeedButton;
     Label11: TLabel;
     edtUltimoNome: TEdit;
     tabEntrarComEmail: TTabItem;
@@ -93,7 +95,7 @@ type
     procedure btnEntrarClick(Sender: TObject);
     procedure lblNovaContaClick(Sender: TObject);
     procedure lbTextUserClick(Sender: TObject);
-    procedure btnCriarContaClick(Sender: TObject);
+    procedure btnCriarOkClick(Sender: TObject);
     procedure btnAcessarEmailClick(Sender: TObject);
     procedure lblExitClick(Sender: TObject);
     procedure lblExit1Click(Sender: TObject);
@@ -131,6 +133,9 @@ type
     procedure AjustarScroll(Sender: TObject);
     procedure OnVirtualKeyboardShown(Sender: TObject;
       const KeyboardBounds: TRect);
+    procedure MostrarMensagemErro(ATitulo, AMensagem: string);
+    procedure MostrarMensagemSucesso(ATitulo, AMensagem: string;
+      OnClose: TProc);
 
   public
     { Public declarations }
@@ -380,6 +385,10 @@ end;
 
 procedure TfrmLogin.TerminateLoading(Sender: TObject);
 begin
+
+  if (Trim(edtEmail.Text) = '') or (Trim(edtSenha.Text) = '')then
+    exit;
+
   if TSession.id > 0 then
   begin
     SalvarLoginLocal(TSession.id);
@@ -499,7 +508,7 @@ end;
 
 procedure TfrmLogin.MostrarMensagemUsuarioCadastro(const Msg: string);
 begin
-  lblTextUserCadastro.Visible := True;
+ {* lblTextUserCadastro.Visible := false;
   lblTextUserCadastro.Text := Msg;
 
   TThread.CreateAnonymousThread(
@@ -518,21 +527,29 @@ begin
         end
       );
     end
-  ).Start;
+  ).Start;     *}
 end;
-
-
 
 procedure TfrmLogin.TerminateCadastro(Sender: TObject);
 begin
   if CadastroOk then
   begin
-    lblTextUserCadastro.Text := 'Cadastro realizado com sucesso! Volte para a tela inicial para realizar o login.';
-    lblTextUserCadastro.Visible := True;
-    //TabControl.GotoVisibleTab(0);
+    MostrarMensagemSucesso('Sucesso', 'Cadastro realizado com sucesso!',
+      procedure
+      begin
+        TabControl.GotoVisibleTab(0);
+      end
+    );
   end;
+end;
 
-  // Se CadastroOk = False, a mensagem de erro já foi mostrada dentro da thread
+procedure TfrmLogin.MostrarMensagemSucesso(ATitulo, AMensagem: string; OnClose: TProc);
+var
+  MsgSucesso: TFrMessageSucessComponents;
+begin
+  MsgSucesso := TFrMessageSucessComponents.Create(Self);
+  MsgSucesso.Parent := Self;
+  MsgSucesso.MessageSucess(ATitulo, AMensagem, OnClose);
 end;
 
 
@@ -556,7 +573,7 @@ begin
   TabControl.GotoVisibleTab(1);
 end;
 
-procedure TfrmLogin.btnCriarContaClick(Sender: TObject);
+procedure TfrmLogin.btnCriarOkClick(Sender: TObject);
 var
   Nome, Sobrenome, Email, Senha: string;
 begin
@@ -565,83 +582,56 @@ begin
   Email := Trim(edtEmailCadastro.Text);
   Senha := Trim(edtSenhaCad.Text);
 
-  // Validação rápida
   if Nome = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "Nome" é obrigatório. Por favor, preencha-o para continuar.');
+    MostrarMensagemUsuarioCadastro('O campo "Nome" é obrigatório.');
     Exit;
   end;
 
   if Sobrenome = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "Último nome" é obrigatório. Por favor, preencha-o para continuar.');
+    MostrarMensagemUsuarioCadastro('O campo "Último nome" é obrigatório.');
     Exit;
   end;
 
   if Email = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "E-mail" é obrigatório. Por favor, informe um e-mail válido.');
+    MostrarMensagemUsuarioCadastro('O campo "E-mail" é obrigatório.');
     Exit;
   end;
 
   if Senha = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "Senha" é obrigatório. Por favor, defina uma senha para sua conta.');
+    MostrarMensagemUsuarioCadastro('O campo "Senha" é obrigatório.');
     Exit;
   end;
 
-  CadastroOk := False; // Reset da flag
+  CadastroOk := False;
 
   TLoading.ExecuteThread(
-    procedure
-    var
-      Msg: string;
-      LJson: TJSONObject;
-    begin
-      try
-        dm.cadastrarUsuario(Nome, Sobrenome, Email, Senha);
-        CadastroOk := True;
-      except
-        on E: Exception do
-        begin
-          CadastroOk := False;
-          Msg := E.Message;
+  procedure
+  begin
 
-          if Msg.Contains('{') then
-          begin
-            try
-              LJson := TJSONObject.ParseJSONValue(Msg) as TJSONObject;
-              if Assigned(LJson) then
-              begin
-                Msg := LJson.GetValue<string>('message');
-                FreeAndNil(LJson);
-              end;
-            except
-              Msg := 'Ocorreu um erro ao processar a resposta do servidor. Tente novamente mais tarde.';
-            end;
+    try
+     dm.cadastrarUsuario(Nome, Sobrenome, Email, Senha);
+     CadastroOk := True;
+    except
+      on E: Exception do
+      begin
+        TThread.Synchronize(nil,
+          procedure begin
+            MostrarMensagemErro(
+                  'Error',
+                  'E-mail já cadastrado. Insira um diferente'
+                );
           end
-          else if Msg.ToLower.Contains('httprequest') or
-                  Msg.ToLower.Contains('could not connect') or
-                  Msg.ToLower.Contains('connection refused') then
-            Msg := 'Não foi possível conectar ao servidor. Verifique sua conexão com a internet ou tente novamente em alguns minutos.'
-          else
-            Msg := 'Ocorreu um erro inesperado durante o cadastro: ' + Msg;
-
-          // Armazena mensagem para exibir depois
-          TThread.Synchronize(nil,
-            procedure
-            begin
-              lblTextUserCadastro.Text := Msg;
-              lblTextUserCadastro.Visible := True;
-            end
-          );
-        end;
+        );
       end;
-    end,
-    TerminateCadastro
+    end;
+  end,
+  TerminateCadastro
   );
 end;
-
 
 procedure TfrmLogin.btnAcessarEmailClick(Sender: TObject);
 begin
@@ -650,8 +640,6 @@ begin
   if TSession.id <= 0 then
   begin
     TabControl.GotoVisibleTab(2);
-    lblMessage.Text := '';
-    lblMessage.Visible := False;
     Exit;
   end;
 
@@ -667,15 +655,6 @@ begin
       BiometriaAtiva := False;
       jsonRequest := nil;
       jsonResponse := nil;
-
-      // Limpa a mensagem antes de começar
-      TThread.Synchronize(nil,
-        procedure
-        begin
-          lblMessage.Text := '';
-          lblMessage.Visible := False;
-        end
-      );
 
       try
         SessaoValida := dm.ValidarSessao;
@@ -695,8 +674,10 @@ begin
             TThread.Synchronize(nil,
               procedure
               begin
-                lblMessage.Text := 'Não foi possível conectar ao servidor. Verifique sua internet ou tente novamente mais tarde.' + sLineBreak + 'Detalhes: ' + E.Message;
-                lblMessage.Visible := True;
+                MostrarMensagemErro(
+                  'Falha de Conexão',
+                  'Não foi possível conectar ao servidor. Verifique sua internet ou tente novamente mais tarde.' + sLineBreak + 'Detalhes: ' + E.Message
+                );
               end
             );
             Exit;
@@ -724,8 +705,10 @@ begin
           TThread.Synchronize(nil,
             procedure
             begin
-              lblMessage.Text := 'Erro durante a verificação da sessão. Tente novamente.' + sLineBreak + 'Detalhes: ' + E.Message;
-              lblMessage.Visible := True;
+              MostrarMensagemErro(
+                'Erro na Sessão',
+                'Erro durante a verificação da sessão. Tente novamente.' + sLineBreak + 'Detalhes: ' + E.Message
+              );
             end
           );
         end;
@@ -736,16 +719,20 @@ begin
         begin
           if not SessaoValida then
           begin
-            lblMessage.Text := 'Sessão inválida. Verifique sua conexão com o servidor.';
-            lblMessage.Visible := True;
+            MostrarMensagemErro(
+              'Sessão Inválida',
+              'Sua sessão expirou ou não é válida. Verifique sua conexão com o servidor.'
+            );
             TabControl.GotoVisibleTab(2);
             Exit;
           end;
 
           if not CodigoExiste then
           begin
-            lblMessage.Text := 'Código de verificação 2FA não encontrado. Complete a autenticação de dois fatores.';
-            lblMessage.Visible := True;
+            MostrarMensagemErro(
+              '2FA Não Encontrado',
+              'Código de verificação 2FA não encontrado. Complete a autenticação de dois fatores.'
+            );
             TabControl.GotoVisibleTab(2);
             Exit;
           end;
@@ -761,8 +748,10 @@ begin
             end
             else
             begin
-              lblMessage.Text := 'Biometria não disponível ou não suportada neste dispositivo.';
-              lblMessage.Visible := True;
+              MostrarMensagemErro(
+                'Biometria Indisponível',
+                'Biometria não disponível ou não suportada neste dispositivo.'
+              );
             end;
           end;
 
@@ -780,7 +769,6 @@ begin
   ).Start;
 end;
 
-
 procedure TfrmLogin.OnVirtualKeyboardShown(Sender: TObject; const KeyboardBounds: TRect);
 begin
   // Captura a altura do teclado virtual
@@ -788,6 +776,15 @@ begin
 
   // Move o ScrollBox para cima ou aumenta a altura do conteúdo se necessário
   SBNovaConta.ViewportPosition := PointF(0, edtSenhaCad.Position.Y - tecladoAltura / 2);
+end;
+
+procedure TfrmLogin.MostrarMensagemErro(ATitulo, AMensagem: string);
+var
+  MsgErro: TMessageComponents;
+begin
+  MsgErro := TMessageComponents.Create(Self);
+  MsgErro.Parent := Self;
+  MsgErro.MostrarErro(ATitulo, AMensagem);
 end;
 
 

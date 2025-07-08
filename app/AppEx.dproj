@@ -354,6 +354,17 @@
             <Form>frmConfigGerais</Form>
             <FormType>fmx</FormType>
         </DCCReference>
+        <DCCReference Include="components\FMessageComponents.pas">
+            <Form>MessageComponents</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="components\FMessageSucessComponents.pas">
+            <Form>FrMessageSucessComponents</Form>
+            <FormType>fmx</FormType>
+            <DesignClass>TFrame</DesignClass>
+        </DCCReference>
+        <DCCReference Include="ultils\unitUtilsCode.pas"/>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

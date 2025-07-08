@@ -18,7 +18,7 @@ object frmLogin: TfrmLogin
     Size.Height = 668.000000000000000000
     Size.PlatformDefault = False
     TabHeight = 49.000000000000000000
-    TabIndex = 2
+    TabIndex = 1
     TabOrder = 0
     TabPosition = None
     Sizes = (
@@ -2462,7 +2462,7 @@ object frmLogin: TfrmLogin
         item
         end>
       TextSettings.Trimming = None
-      IsSelected = False
+      IsSelected = True
       Size.Width = 8.000000000000000000
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
@@ -2542,6 +2542,7 @@ object frmLogin: TfrmLogin
             Align = Top
             StyleLookup = 'clearingeditstyle'
             TabOrder = 5
+            KeyboardType = PhonePad
             Password = True
             TextSettings.Font.Size = 14.000000000000000000
             Position.X = 10.000000000000000000
@@ -3356,7 +3357,7 @@ object frmLogin: TfrmLogin
             Stroke.Kind = None
             XRadius = 4.000000000000000000
             YRadius = 4.000000000000000000
-            object btnCriarConta: TSpeedButton
+            object btnCriarOk: TSpeedButton
               Align = Center
               Cursor = crHandPoint
               StyledSettings = [Family]
@@ -3368,7 +3369,7 @@ object frmLogin: TfrmLogin
               TextSettings.Font.StyleExt = {00060000000000000004000000}
               TextSettings.FontColor = claWhite
               TextSettings.Trimming = None
-              OnClick = btnCriarContaClick
+              OnClick = btnCriarOkClick
             end
           end
           object Label11: TLabel
@@ -3421,6 +3422,7 @@ object frmLogin: TfrmLogin
             Touch.InteractiveGestures = [LongTap, DoubleTap]
             Align = Top
             TabOrder = 4
+            KeyboardType = EmailAddress
             TextSettings.Font.Size = 14.000000000000000000
             Position.X = 10.000000000000000000
             Position.Y = 235.000000000000000000
@@ -3517,7 +3519,7 @@ object frmLogin: TfrmLogin
         item
         end>
       TextSettings.Trimming = None
-      IsSelected = True
+      IsSelected = False
       Size.Width = 8.000000000000000000
       Size.Height = 8.000000000000000000
       Size.PlatformDefault = False
@@ -3551,6 +3553,7 @@ object frmLogin: TfrmLogin
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Top
           TabOrder = 4
+          KeyboardType = DecimalNumberPad
           Password = True
           TextSettings.Font.Size = 14.000000000000000000
           Position.X = 10.000000000000000000
@@ -4396,6 +4399,7 @@ object frmLogin: TfrmLogin
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Top
           TabOrder = 6
+          KeyboardType = EmailAddress
           TextSettings.Font.Size = 14.000000000000000000
           Position.X = 10.000000000000000000
           Position.Y = 84.000000000000000000

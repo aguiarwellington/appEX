@@ -54,12 +54,13 @@ object AutenticacaoCode: TAutenticacaoCode
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.Font.StyleExt = {00060000000000000004000000}
       Text = 'Digite o codigo recebido'
-      TabOrder = 2
+      TabOrder = 3
     end
     object edtcode: TEdit
       Touch.InteractiveGestures = [LongTap, DoubleTap]
       Align = Top
-      TabOrder = 3
+      TabOrder = 4
+      KeyboardType = PhonePad
       TextSettings.Font.Size = 14.000000000000000000
       Position.X = 10.000000000000000000
       Position.Y = 106.000000000000000000
@@ -77,15 +78,15 @@ object AutenticacaoCode: TAutenticacaoCode
       StyledSettings = []
       HitTest = True
       Margins.Bottom = 100.000000000000000000
-      Position.Y = 279.000000000000000000
+      Position.Y = 238.000000000000000000
       Size.Width = 293.000000000000000000
       Size.Height = 17.000000000000000000
       Size.PlatformDefault = False
       TextSettings.Font.Size = 14.000000000000000000
       TextSettings.FontColor = xFF0236DA
       TextSettings.HorzAlign = Center
-      Text = 'Enviar codigo'
-      TabOrder = 0
+      Text = 'Reenviar codigo'
+      TabOrder = 1
       OnClick = lblNewContaClick
     end
     object Label2: TLabel
@@ -101,7 +102,107 @@ object AutenticacaoCode: TAutenticacaoCode
       TextSettings.FontColor = xFF1E1A19
       TextSettings.HorzAlign = Center
       Text = 'Codigo de autenticacao'
-      TabOrder = 1
+      TabOrder = 2
+    end
+    object lblContador: TLabel
+      Align = Bottom
+      Cursor = crHandPoint
+      StyledSettings = []
+      HitTest = True
+      Position.Y = 355.000000000000000000
+      Size.Width = 293.000000000000000000
+      Size.Height = 41.000000000000000000
+      Size.PlatformDefault = False
+      TextSettings.Font.Size = 14.000000000000000000
+      TextSettings.FontColor = xFFDA0202
+      TextSettings.HorzAlign = Center
+      TabOrder = 0
+    end
+  end
+  object RecNumber: TRectangle
+    Align = Client
+    Fill.Color = claWhite
+    Size.Width = 325.000000000000000000
+    Size.Height = 667.000000000000000000
+    Size.PlatformDefault = False
+    object Layout1: TLayout
+      Align = Center
+      Size.Width = 293.000000000000000000
+      Size.Height = 396.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object Rectangle2: TRectangle
+        Align = Top
+        Fill.Color = xFF663DE8
+        Margins.Top = 20.000000000000000000
+        Position.Y = 158.000000000000000000
+        Size.Width = 293.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        Stroke.Kind = None
+        XRadius = 4.000000000000000000
+        YRadius = 4.000000000000000000
+        object btnNumer: TSpeedButton
+          Align = Client
+          Cursor = crHandPoint
+          StyledSettings = [Family]
+          Size.Width = 293.000000000000000000
+          Size.Height = 50.000000000000000000
+          Size.PlatformDefault = False
+          Text = 'Enviar'
+          TextSettings.Font.Size = 16.000000000000000000
+          TextSettings.Font.StyleExt = {00060000000000000004000000}
+          TextSettings.FontColor = claWhite
+          TextSettings.Trimming = None
+          OnClick = btnNumerClick
+        end
+      end
+      object Label3: TLabel
+        Align = Top
+        StyledSettings = [Family, FontColor]
+        Margins.Left = 10.000000000000000000
+        Margins.Top = 30.000000000000000000
+        Position.X = 10.000000000000000000
+        Position.Y = 79.000000000000000000
+        Size.Width = 283.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.Font.StyleExt = {00060000000000000004000000}
+        Text = 'Digite o seu n'#250'mero de telefone'
+        TabOrder = 1
+      end
+      object edtNumber: TEdit
+        Touch.InteractiveGestures = [LongTap, DoubleTap]
+        Align = Top
+        TabOrder = 2
+        KeyboardType = PhonePad
+        TextSettings.Font.Size = 14.000000000000000000
+        Position.X = 10.000000000000000000
+        Position.Y = 106.000000000000000000
+        Margins.Left = 10.000000000000000000
+        Margins.Top = 10.000000000000000000
+        Margins.Right = 10.000000000000000000
+        Size.Width = 273.000000000000000000
+        Size.Height = 32.000000000000000000
+        Size.PlatformDefault = False
+        StyledSettings = [Family, Style, FontColor]
+        OnTyping = edtNumberTyping
+      end
+      object Label5: TLabel
+        Align = Top
+        StyledSettings = []
+        Margins.Top = 10.000000000000000000
+        Position.Y = 10.000000000000000000
+        Size.Width = 293.000000000000000000
+        Size.Height = 39.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 18.000000000000000000
+        TextSettings.Font.StyleExt = {00060000000000000004000000}
+        TextSettings.FontColor = xFF1E1A19
+        TextSettings.HorzAlign = Center
+        TabOrder = 0
+      end
     end
   end
   object BiometricAuth: TBiometricAuth
@@ -112,6 +213,7 @@ object AutenticacaoCode: TAutenticacaoCode
     PromptDescription = 'Voc'#234' precisa de autentica'#231#227'o'
     PromptSubtitle = 'Para acessar, voc'#234' precisa se autenticar'
     PromptTitle = 'Autentica'#231#227'o'
+    OnAuthenticateSuccess = BiometricAuthAuthenticateSuccess
     Left = 64
     Top = 48
   end

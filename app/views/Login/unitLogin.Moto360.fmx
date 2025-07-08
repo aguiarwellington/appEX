@@ -70,7 +70,7 @@ inherited frmLogin_Moto360: TfrmLogin_Moto360
           end
           inherited rectCriarConta: TRectangle
             Size.Width = 195.000000000000000000
-            inherited btnCriarConta: TSpeedButton
+            inherited btnCriarOk: TSpeedButton
               TextSettings.Font.StyleExt = {00060000000000000004000000}
             end
           end

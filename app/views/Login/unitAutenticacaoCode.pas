@@ -1,4 +1,4 @@
-unit unitAutenticacaoCode;
+Ôªøunit unitAutenticacaoCode;
 
 interface
 
@@ -21,7 +21,8 @@ uses
   common.consts,
   System.UITypes,
   FMX.BiometricAuth,
-  FMX.DialogService.Async;
+  FMX.DialogService.Async,
+  unitUtilsCode;
 
 type
   TAutenticacaoCode = class(TForm)
@@ -33,11 +34,22 @@ type
     lblNewConta: TLabel;
     Label2: TLabel;
     BiometricAuth: TBiometricAuth;
+    lblContador: TLabel;
+    RecNumber: TRectangle;
+    Layout1: TLayout;
+    Rectangle2: TRectangle;
+    btnNumer: TSpeedButton;
+    Label3: TLabel;
+    edtNumber: TEdit;
+    Label5: TLabel;
     procedure btnValidarClick(Sender: TObject);
     procedure lblNewContaClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
-    procedure BiometricAuthSuccess(Sender: TObject);
     procedure BiometricAuthFail(Sender: TObject; const FailReason: TBiometricFailReason; const ResultMessage: string);
+    procedure BiometricAuthAuthenticateSuccess(Sender: TObject);
+    procedure btnNumerClick(Sender: TObject);
+    procedure edtNumberExit(Sender: TObject);
+    procedure edtNumberTyping(Sender: TObject);
   private
     procedure ValidateCode;
     procedure EnviarCodigoAutenticacao;
@@ -57,14 +69,37 @@ uses mainClientes;
 
 procedure TAutenticacaoCode.FormCreate(Sender: TObject);
 begin
-  BiometricAuth.OnAuthenticateSuccess := BiometricAuthSuccess;
+  //BiometricAuth.OnAuthenticateSuccess := BiometricAuthSuccess;
   BiometricAuth.OnAuthenticateFail := BiometricAuthFail;
+end;
+
+procedure TAutenticacaoCode.btnNumerClick(Sender: TObject);
+begin
+  if edtNumber.ToString <> '' then
+  begin
+     RecNumber.Visible := false;
+     EnviarCodigoAutenticacao;
+  end
+  else
+    ShowMessage('Por favor, informe seu n√∫mero de telefone.')
 end;
 
 procedure TAutenticacaoCode.btnValidarClick(Sender: TObject);
 begin
   ValidateCode;
 end;
+
+procedure TAutenticacaoCode.edtNumberExit(Sender: TObject);
+begin
+   TEdit(Sender).Text := MascaraTelefone(TEdit(Sender).Text);
+end;
+
+procedure TAutenticacaoCode.edtNumberTyping(Sender: TObject);
+begin
+  TEdit(Sender).Text := MascaraTelefone(TEdit(Sender).Text);
+  TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
+end;
+
 
 procedure TAutenticacaoCode.lblNewContaClick(Sender: TObject);
 begin
@@ -99,7 +134,7 @@ begin
         ShowMessage(jsonResponse.GetValue<string>('mensagem'));
     except
       on E: Exception do
-        ShowMessage('Erro de comunicaÁ„o: ' + E.Message);
+        ShowMessage('Erro de comunica√ß√£o: ' + E.Message);
     end;
   finally
     jsonRequest.Free;
@@ -122,12 +157,10 @@ begin
       begin
         if AResult = mrYes then
         begin
-           BiometricAuth.Authenticate;
-          AtivarBiometria;
+          BiometricAuth.Authenticate;
         end
         else
         begin
-          // Fecha esta tela e volta para o login
           Self.Close;
           if Assigned(Self.Owner) then
             TForm(Self.Owner).Show
@@ -139,7 +172,7 @@ begin
   end
   else
   begin
-    ShowMessage('Seu dispositivo n„o suporta biometria.');
+    ShowMessage('Seu dispositivo n√£o suporta biometria.');
     Self.Close;
     if Assigned(Self.Owner) then
       TForm(Self.Owner).Show
@@ -148,25 +181,29 @@ begin
   end;
 end;
 
-procedure TAutenticacaoCode.BiometricAuthSuccess(Sender: TObject);
+
+procedure TAutenticacaoCode.BiometricAuthAuthenticateSuccess(Sender: TObject);
 begin
   AtivarBiometria;
 end;
 
 procedure TAutenticacaoCode.BiometricAuthFail(Sender: TObject; const FailReason: TBiometricFailReason; const ResultMessage: string);
 begin
-  ShowMessage('AutenticaÁ„o falhou: ' + ResultMessage);
+  ShowMessage('Autentica√ß√£o falhou: ' + ResultMessage);
 end;
 
 procedure TAutenticacaoCode.AtivarBiometria;
 var
   resp: IResponse;
+  json: TJSONObject;
 begin
+  json := TJSONObject.Create;
   try
+    json.AddPair('user_id', TJSONNumber.Create(TSession.id));
+    json.AddPair('ativa', TJSONBool.Create(True));
     resp := TRequest.New
       .BaseURL(baseURL + '/usuarios/ativar-biometria')
-      .AddBody(TJSONObject.Create
-        .AddPair('user_id', TJSONNumber.Create(TSession.id)).ToString)
+      .AddBody(json.ToString)
       .Accept('application/json')
       .Post;
 
@@ -179,7 +216,6 @@ begin
       ShowMessage('Erro ao comunicar com o servidor: ' + E.Message);
   end;
 
-  // Fecha a tela e vai para tela principal
   Close;
   if not Assigned(frmClientes) then
     Application.CreateForm(TfrmClientes, frmClientes);
@@ -195,7 +231,7 @@ begin
   jsonRequest := TJSONObject.Create;
   try
     jsonRequest.AddPair('user_id', TJSONNumber.Create(TSession.id));
-    jsonRequest.AddPair('phone', '5561992045816');
+    jsonRequest.AddPair('phone', edtNumber.ToString);
 
     try
       resp := TRequest.New
@@ -206,12 +242,12 @@ begin
                 .Post;
 
       if resp.StatusCode = 200 then
-        ShowMessage('CÛdigo enviado com sucesso.')
+        ShowMessage('C√≥digo enviado com sucesso.')
       else
-        ShowMessage('Erro ao enviar cÛdigo: ' + resp.Content);
+        ShowMessage('Erro ao enviar c√≥digo: ' + resp.Content);
     except
       on E: Exception do
-        ShowMessage('Erro de comunicaÁ„o: ' + E.Message);
+        ShowMessage('Erro de comunica√ß√£o: ' + E.Message);
     end;
   finally
     jsonRequest.Free;

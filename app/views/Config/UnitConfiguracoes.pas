@@ -3,15 +3,47 @@ unit UnitConfiguracoes;
 interface
 
 uses
-  System.SysUtils, System.Types, System.UITypes, System.Classes, System.Variants,
-  FMX.Types, FMX.Controls, FMX.Forms, FMX.Graphics, FMX.Dialogs,
-  FMX.Objects, FMX.Controls.Presentation, FMX.StdCtrls, FMX.Edit,
-  FMX.Layouts, DadosCadastraisClass, System.JSON, dmMeiDados, usuarioClass,
-  FMX.ExtCtrls, System.NetEncoding, System.IOUtils, FMX.Media, FMX.DialogService.Async,
-  common.consts, RESTRequest4D, FMX.MediaLibrary, FMX.Platform, System.Threading,
-  uPermission, FMX.MediaLibrary.Actions, System.Permissions,
-  FMX.StdActns, System.Actions, FMX.ActnList, FMX.TabControl
-  {$IFDEF ANDROID}, Androidapi.Helpers, Androidapi.JNI.Os, Androidapi.JNI.JavaTypes {$ENDIF};
+  System.SysUtils,
+  System.Types,
+  System.UITypes,
+  System.Classes,
+  System.Variants,
+  FMX.Types,
+  FMX.Controls,
+  FMX.Forms,
+  FMX.Graphics,
+  FMX.Dialogs,
+  FMX.Objects,
+  FMX.Controls.Presentation,
+  FMX.StdCtrls,
+  FMX.Edit,
+  FMX.Layouts,
+  DadosCadastraisClass,
+  System.JSON,
+  dmMeiDados,
+  usuarioClass,
+  FMX.ExtCtrls,
+  System.NetEncoding,
+  System.IOUtils,
+  FMX.Media,
+  FMX.DialogService.Async,
+  common.consts,
+  RESTRequest4D,
+  FMX.MediaLibrary,
+  FMX.Platform,
+  System.Threading,
+  uPermission,
+  FMX.MediaLibrary.Actions,
+  System.Permissions,
+  FMX.StdActns,
+  System.Actions,
+  FMX.ActnList,
+  unitUtilsCode,
+  FMX.TabControl
+  {$IFDEF ANDROID},
+  Androidapi.Helpers,
+  Androidapi.JNI.Os,
+  Androidapi.JNI.JavaTypes {$ENDIF};
 
 
 type
@@ -53,13 +85,18 @@ type
     layimgpai: TLayout;
     layImgfilho: TLayout;
     imgUser: TImage;
-    lblTextImg: TLabel;
     ActionList1: TActionList;
     ActLogin: TChangeTabAction;
     ActConta: TChangeTabAction;
     ActFoto: TChangeTabAction;
     ActLibrary: TTakePhotoFromLibraryAction;
     ActCamera: TTakePhotoFromCameraAction;
+    c_foto: TCircle;
+    Rectangle1: TRectangle;
+    Layout8: TLayout;
+    img_foto: TImage;
+    img_library: TImage;
+    lbl_cancelar: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure imgFecharClick(Sender: TObject);
@@ -77,6 +114,10 @@ type
     procedure edtTelefoneEnter(Sender: TObject);
     procedure edtTelefoneExit(Sender: TObject);
     procedure FormShow(Sender: TObject);
+    procedure recFotoClick(Sender: TObject);
+    procedure edtTelefoneTyping(Sender: TObject);
+    procedure edtCNPJTyping(Sender: TObject);
+    procedure edtCEPTyping(Sender: TObject);
   private
     FOriginalHeight: Single;
     permissao: TPermissions;
@@ -104,11 +145,16 @@ uses FMX.DialogService;
 
 procedure TFrmConfiguracoes.FormCreate(Sender: TObject);
 begin
-  FOriginalHeight := layDados.Height;
+  FOriginalHeight := LayDados.Height;
   permissao := TPermissions.Create;
 
   ActLibrary.OnDidFinishTaking := ActLibraryDidFinishTaking;
+  imgUser.Align := TAlignLayout.Client;
+  imgUser.WrapMode := TImageWrapMode.Stretch;
+  imgUser.HitTest := False;
 end;
+
+
 
 procedure TFrmConfiguracoes.FormShow(Sender: TObject);
 begin
@@ -130,7 +176,7 @@ end;
 procedure TFrmConfiguracoes.imgUserClick(Sender: TObject);
 begin
   permissao.SolicitarGaleria(ActLibrary, ErroPermissao);
-  lblTextImg.Visible:= false;
+  //lblTextImg.Visible:= false;
 end;
 
 procedure TFrmConfiguracoes.layImgfilhoClick(Sender: TObject);
@@ -198,6 +244,12 @@ begin
   end;
 end;
 
+procedure TFrmConfiguracoes.edtCNPJTyping(Sender: TObject);
+begin
+  TEdit(Sender).Text := MascaraCNPJ(TEdit(Sender).Text);
+  TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
+end;
+
 procedure TFrmConfiguracoes.edtCEPKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 var
   DadosCEP: TJSONObject;
@@ -211,6 +263,12 @@ begin
     else
       TDialogService.ShowMessage('CEP não encontrado. Preencha manualmente.');
   end;
+end;
+
+procedure TFrmConfiguracoes.edtCEPTyping(Sender: TObject);
+begin
+  TEdit(Sender).Text := MascaraCEP(TEdit(Sender).Text);
+  TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
 end;
 
 procedure TFrmConfiguracoes.EditFocus(Sender: TObject);
@@ -263,6 +321,12 @@ end;
 procedure TFrmConfiguracoes.edtTelefoneExit(Sender: TObject);
 begin
   EditGenericExit(Sender);
+end;
+
+procedure TFrmConfiguracoes.edtTelefoneTyping(Sender: TObject);
+begin
+  TEdit(Sender).Text := MascaraTelefone(TEdit(Sender).Text);
+  TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
 end;
 
 procedure TFrmConfiguracoes.ErroPermissao(Sender: TObject);
@@ -322,6 +386,11 @@ begin
   edtCEP.Text := Dados.GetValue<string>('cep', '');
 end;
 
+procedure TFrmConfiguracoes.recFotoClick(Sender: TObject);
+begin
+imgUserClick(Sender);
+end;
+
 procedure TFrmConfiguracoes.PreencherDadosCEP(Dados: TJSONObject);
 begin
   edtRua.Text := Dados.GetValue<string>('street', '');
@@ -339,24 +408,24 @@ begin
 
   if Assigned(Json) then
   begin
-    edtCNPJ.Text := Json.GetValue<string>('cnpj', '');
+    edtCNPJ.Text := MascaraCNPJ(Json.GetValue<string>('cnpj', ''));
     edtRazaoSocial.Text := Json.GetValue<string>('razao_social', '');
     edtNomeFantasia.Text := Json.GetValue<string>('nome_fantasia', '');
     edtEmail.Text := Json.GetValue<string>('email', '');
-    edtTelefone.Text := Json.GetValue<string>('telefone', '');
+    edtTelefone.Text := MascaraTelefone(Json.GetValue<string>('telefone', ''));
     edtRua.Text := Json.GetValue<string>('endereco_rua', '');
     edtNumero.Text := Json.GetValue<string>('endereco_numero', '');
     edtBairro.Text := Json.GetValue<string>('endereco_bairro', '');
     edtCidade.Text := Json.GetValue<string>('endereco_cidade', '');
     edtEstado.Text := Json.GetValue<string>('endereco_estado', '');
-    edtCEP.Text := Json.GetValue<string>('endereco_cep', '');
+    edtCEP.Text := MascaraCEP(Json.GetValue<string>('endereco_cep', ''));
 
     // Carregar imagem
     FotoBase64 := Json.GetValue<string>('foto', '');
     LoadBase64ImageToImageControl(FotoBase64, imgUser);
 
     // Ocultar texto da imagem, se houver imagem carregada
-    lblTextImg.Visible := imgUser.Bitmap.IsEmpty;
+    //lblTextImg.Visible := imgUser.Bitmap.IsEmpty;
   end;
 end;
 

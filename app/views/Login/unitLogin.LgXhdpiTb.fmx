@@ -70,7 +70,7 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
           end
           inherited rectCriarConta: TRectangle
             Size.Width = 435.000000000000000000
-            inherited btnCriarConta: TSpeedButton
+            inherited btnCriarOk: TSpeedButton
               TextSettings.Font.StyleExt = {00060000000000000004000000}
             end
           end
