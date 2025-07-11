@@ -10,6 +10,7 @@ object frmLogin: TfrmLogin
   FormFactor.Devices = [Desktop]
   OnCreate = FormCreate
   OnVirtualKeyboardShown = FormVirtualKeyboardShown
+  OnVirtualKeyboardHidden = FormVirtualKeyboardHidden
   DesignerMasterStyle = 3
   object TabControl: TTabControl
     Align = Client
@@ -3553,7 +3554,6 @@ object frmLogin: TfrmLogin
           Touch.InteractiveGestures = [LongTap, DoubleTap]
           Align = Top
           TabOrder = 4
-          KeyboardType = DecimalNumberPad
           Password = True
           TextSettings.Font.Size = 14.000000000000000000
           Position.X = 10.000000000000000000

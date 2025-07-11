@@ -12,6 +12,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
   OnCreate = FormCreate
   OnClose = FormClose
   OnShow = FormShow
+  OnVirtualKeyboardShown = FormVirtualKeyboardShown
+  OnVirtualKeyboardHidden = FormVirtualKeyboardHidden
   DesignerMasterStyle = 3
   object scrollDados: TScrollBox
     Align = Center
@@ -60,6 +62,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtNomeFantasiaKeyDown
+        OnEnter = edtNomeFantasiaEnter
       end
       object Label15: TLabel
         Align = Top
@@ -92,6 +96,7 @@ object FrmConfiguracoes: TFrmConfiguracoes
         StyledSettings = [Family, Style, FontColor]
         OnTyping = edtCNPJTyping
         OnKeyDown = edtCNPJKeyDown
+        OnEnter = edtCNPJEnter
       end
       object Label2: TLabel
         Align = Top
@@ -138,6 +143,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtInscricaoMunicipalKeyDown
+        OnEnter = edtInscricaoMunicipalEnter
       end
       object Label4: TLabel
         Align = Top
@@ -168,6 +175,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtRazaoSocialKeyDown
+        OnEnter = edtRazaoSocialEnter
       end
       object Label5: TLabel
         Align = Top
@@ -213,6 +222,7 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnEnter = edtRuaEnter
       end
       object Label7: TLabel
         Align = Top
@@ -243,6 +253,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtNumeroKeyDown
+        OnEnter = edtNumeroEnter
       end
       object Label8: TLabel
         Align = Top
@@ -273,6 +285,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtBairroKeyDown
+        OnEnter = edtBairroEnter
       end
       object Label9: TLabel
         Align = Top
@@ -318,6 +332,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtEstadoKeyDown
+        OnEnter = edtEstadoEnter
       end
       object Label11: TLabel
         Align = Top
@@ -349,6 +365,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
         OnTyping = edtCEPTyping
+        OnKeyDown = edtCEPKeyDown
+        OnEnter = edtCEPEnter
       end
       object Label12: TLabel
         Align = Top
@@ -394,6 +412,7 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtEmailKeyDown
         OnEnter = edtEmailEnter
         OnExit = edtEmailExit
       end
@@ -428,7 +447,6 @@ object FrmConfiguracoes: TFrmConfiguracoes
         StyledSettings = [Family, Style, FontColor]
         OnTyping = edtTelefoneTyping
         OnEnter = edtTelefoneEnter
-        OnExit = edtTelefoneExit
       end
       object edtCidade: TEdit
         Touch.InteractiveGestures = [LongTap, DoubleTap]
@@ -444,6 +462,8 @@ object FrmConfiguracoes: TFrmConfiguracoes
         Size.Height = 32.000000000000000000
         Size.PlatformDefault = False
         StyledSettings = [Family, Style, FontColor]
+        OnKeyDown = edtCidadeKeyDown
+        OnEnter = edtCidadeEnter
       end
       object layimgpai: TLayout
         Align = Top

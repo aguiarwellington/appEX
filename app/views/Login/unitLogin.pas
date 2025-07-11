@@ -46,7 +46,8 @@ uses
   System.IOUtils,
   System.IniFiles, FMX.BiometricAuth,
   FMessageComponents,
-  FMessageSucessComponents;
+  FMessageSucessComponents,
+  System.Math;
 
 type
   TfrmLogin = class(TForm)
@@ -116,6 +117,8 @@ type
       var KeyChar: WideChar; Shift: TShiftState);
     procedure edtEmailKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: WideChar; Shift: TShiftState);
+    procedure FormVirtualKeyboardHidden(Sender: TObject;
+      KeyboardVisible: Boolean; const Bounds: TRect);
   private
      AlturaOriginalLayout4: Single;
      CadastroOk: Boolean;
@@ -131,8 +134,6 @@ type
     procedure CarregarLoginSalvo;
     procedure SalvarLoginLocal(UserID: Integer);
     procedure AjustarScroll(Sender: TObject);
-    procedure OnVirtualKeyboardShown(Sender: TObject;
-      const KeyboardBounds: TRect);
     procedure MostrarMensagemErro(ATitulo, AMensagem: string);
     procedure MostrarMensagemSucesso(ATitulo, AMensagem: string;
       OnClose: TProc);
@@ -213,6 +214,18 @@ begin
   edtSenhaCad.OnEnter := AjustarScroll;
 end;
 
+procedure TfrmLogin.FormVirtualKeyboardHidden(Sender: TObject;
+  KeyboardVisible: Boolean; const Bounds: TRect);
+begin
+     SBNovaConta.Padding.Bottom := 0;
+
+  if AlturaOriginalLayout4 > 0 then
+    Layout4.Height := AlturaOriginalLayout4;
+
+  // Reseta scroll
+  SBNovaConta.ViewportPosition := PointF(0, 0);
+end;
+
 procedure TfrmLogin.FormVirtualKeyboardShown(Sender: TObject;
   KeyboardVisible: Boolean; const Bounds: TRect);
 var
@@ -233,12 +246,11 @@ begin
 
   if KeyboardVisible then
   begin
-    // Salva a altura original só uma vez
     if AlturaOriginalLayout4 = 0 then
       AlturaOriginalLayout4 := Layout4.Height;
 
     SBNovaConta.Padding.Bottom := KeyboardHeight;
-    Layout4.Height := AlturaOriginalLayout4 + KeyboardHeight;
+    Layout4.Height := AlturaOriginalLayout4 + 50;
 
     // Rola até o campo focado
     for i := 0 to Layout4.ChildrenCount - 1 do
@@ -249,7 +261,7 @@ begin
         CampoPosicao := Focado.LocalToAbsolute(PointF(0, 0));
         ScrollPosicao := SBNovaConta.LocalToAbsolute(PointF(0, 0));
         Deslocamento := CampoPosicao.Y - ScrollPosicao.Y;
-        SBNovaConta.ViewportPosition := PointF(0, Deslocamento - KeyboardHeight / 2);
+        SBNovaConta.ViewportPosition := PointF(0, Max(Deslocamento - KeyboardHeight / 2, 0));
         Break;
       end;
     end;
@@ -258,9 +270,10 @@ begin
   begin
     SBNovaConta.Padding.Bottom := 0;
 
-    // Restaura a altura original se já tiver sido salva
     if AlturaOriginalLayout4 > 0 then
       Layout4.Height := AlturaOriginalLayout4;
+
+    SBNovaConta.ViewportPosition := PointF(0, 0);
   end;
 end;
 
@@ -287,7 +300,7 @@ begin
   if (Sender is TControl) and Assigned(SBNovaConta) then
   begin
     // Rola a tela verticalmente até o campo, com pequeno deslocamento
-    SBNovaConta.ViewportPosition := PointF(0, (Sender as TControl).Position.Y - 20);
+    SBNovaConta.ViewportPosition := PointF(0, (Sender as TControl).Position.Y - 10);
   end;
 end;
 
@@ -769,14 +782,6 @@ begin
   ).Start;
 end;
 
-procedure TfrmLogin.OnVirtualKeyboardShown(Sender: TObject; const KeyboardBounds: TRect);
-begin
-  // Captura a altura do teclado virtual
-  var tecladoAltura := KeyboardBounds.Height;
-
-  // Move o ScrollBox para cima ou aumenta a altura do conteúdo se necessário
-  SBNovaConta.ViewportPosition := PointF(0, edtSenhaCad.Position.Y - tecladoAltura / 2);
-end;
 
 procedure TfrmLogin.MostrarMensagemErro(ATitulo, AMensagem: string);
 var

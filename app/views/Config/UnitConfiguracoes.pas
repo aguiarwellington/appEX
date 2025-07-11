@@ -38,6 +38,7 @@ uses
   FMX.StdActns,
   System.Actions,
   FMX.ActnList,
+  System.Math,
   unitUtilsCode,
   FMX.TabControl
   {$IFDEF ANDROID},
@@ -118,9 +119,41 @@ type
     procedure edtTelefoneTyping(Sender: TObject);
     procedure edtCNPJTyping(Sender: TObject);
     procedure edtCEPTyping(Sender: TObject);
+    procedure FormVirtualKeyboardHidden(Sender: TObject;
+      KeyboardVisible: Boolean; const Bounds: TRect);
+    procedure FormVirtualKeyboardShown(Sender: TObject;
+      KeyboardVisible: Boolean; const Bounds: TRect);
+    procedure edtCEPEnter(Sender: TObject);
+    procedure edtCNPJEnter(Sender: TObject);
+    procedure edtRazaoSocialEnter(Sender: TObject);
+    procedure edtNomeFantasiaEnter(Sender: TObject);
+    procedure edtInscricaoMunicipalEnter(Sender: TObject);
+    procedure edtRuaEnter(Sender: TObject);
+    procedure edtNumeroEnter(Sender: TObject);
+    procedure edtBairroEnter(Sender: TObject);
+    procedure edtCidadeEnter(Sender: TObject);
+    procedure edtEstadoEnter(Sender: TObject);
+    procedure edtRazaoSocialKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtNomeFantasiaKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtInscricaoMunicipalKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtNumeroKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtBairroKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtCidadeKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtEstadoKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure edtEmailKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
   private
     FOriginalHeight: Single;
     permissao: TPermissions;
+    UltimoCampoFocado: TControl;
+    AlturaOriginallayDados : Single;
     procedure ActLibraryDidFinishTaking(Image: TBitmap);
     procedure PreencherDadosCNPJ(Dados: TJSONObject);
     procedure PreencherDadosCEP(Dados: TJSONObject);
@@ -130,6 +163,7 @@ type
 
 
     function BitmapToBase64(Bitmap: TBitmap): string;
+    procedure RolarAteCampoFocado(KeyboardHeight: Single);
 
   public
   end;
@@ -160,6 +194,57 @@ procedure TFrmConfiguracoes.FormShow(Sender: TObject);
 begin
   CarregarDadosExistentes;
 end;
+
+procedure TFrmConfiguracoes.FormVirtualKeyboardHidden(Sender: TObject;
+  KeyboardVisible: Boolean; const Bounds: TRect);
+begin
+  scrollDados.Padding.Bottom := 0;
+if AlturaOriginallayDados > 0 then
+  layDados.Height := AlturaOriginallayDados;
+scrollDados.ViewportPosition := PointF(0, 0);
+end;
+
+procedure TFrmConfiguracoes.FormVirtualKeyboardShown(Sender: TObject;
+  KeyboardVisible: Boolean; const Bounds: TRect);
+var
+  KeyboardHeight: Single;
+  ScreenSize: TPointF;
+  ScreenService: IFMXScreenService;
+begin
+  if TPlatformServices.Current.SupportsPlatformService(IFMXScreenService, ScreenService) then
+    ScreenSize := ScreenService.GetScreenSize
+  else
+    Exit;
+
+  KeyboardHeight := ScreenSize.Y - Bounds.Top;
+
+  if KeyboardVisible then
+  begin
+    if AlturaOriginallayDados = 0 then
+      AlturaOriginallayDados := layDados.Height;
+
+    scrollDados.Padding.Bottom := KeyboardHeight;
+    layDados.Height := AlturaOriginallayDados + 50;
+
+   RolarAteCampoFocado(KeyboardHeight);
+  end;
+end;
+
+procedure TFrmConfiguracoes.RolarAteCampoFocado(KeyboardHeight: Single);
+var
+  CampoPosicao, ScrollPosicao: TPointF;
+  Deslocamento: Single;
+begin
+  if Assigned(UltimoCampoFocado) then
+  begin
+    CampoPosicao := UltimoCampoFocado.LocalToAbsolute(PointF(0, 0));
+    ScrollPosicao := scrollDados.LocalToAbsolute(PointF(0, 0));
+    Deslocamento := CampoPosicao.Y - ScrollPosicao.Y;
+    scrollDados.ViewportPosition := PointF(0, Max(Deslocamento - KeyboardHeight / 2, 0));
+  end;
+end;
+
+
 
 procedure TFrmConfiguracoes.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
@@ -215,10 +300,18 @@ begin
     imgUser.Bitmap.Assign(Image);
 end;
 
+procedure TFrmConfiguracoes.edtCNPJEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
 procedure TFrmConfiguracoes.edtCNPJKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 var
   DadosCNPJ, DadosCEP: TJSONObject;
 begin
+  if Key = vkReturn then
+    edtRazaoSocial.SetFocus;
+
   if Key = vkReturn then
   begin
     if Length(edtCNPJ.Text) < 14 then
@@ -242,6 +335,7 @@ begin
     else
       TDialogService.ShowMessage('CNPJ não encontrado. Preencha manualmente.');
   end;
+
 end;
 
 procedure TFrmConfiguracoes.edtCNPJTyping(Sender: TObject);
@@ -250,10 +344,30 @@ begin
   TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
 end;
 
+procedure TFrmConfiguracoes.edtBairroEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtBairroKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if Key = vkReturn then
+    edtCidade.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtCEPEnter(Sender: TObject);
+begin
+   UltimoCampoFocado := Sender as TControl;
+end;
+
 procedure TFrmConfiguracoes.edtCEPKeyDown(Sender: TObject; var Key: Word; var KeyChar: Char; Shift: TShiftState);
 var
   DadosCEP: TJSONObject;
 begin
+   if Key = vkReturn then
+    edtRua.SetFocus;
+
   if Key = vkReturn then
   begin
     if Length(edtCEP.Text) < 8 then Exit;
@@ -269,6 +383,18 @@ procedure TFrmConfiguracoes.edtCEPTyping(Sender: TObject);
 begin
   TEdit(Sender).Text := MascaraCEP(TEdit(Sender).Text);
   TEdit(Sender).CaretPosition := Length(TEdit(Sender).Text);
+end;
+
+procedure TFrmConfiguracoes.edtCidadeEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtCidadeKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if Key = vkReturn then
+    edtEstado.SetFocus;
 end;
 
 procedure TFrmConfiguracoes.EditFocus(Sender: TObject);
@@ -305,7 +431,7 @@ end;
 
 procedure TFrmConfiguracoes.edtEmailEnter(Sender: TObject);
 begin
-  EditGenericEnter(Sender);
+  UltimoCampoFocado := Sender as TControl;
 end;
 
 procedure TFrmConfiguracoes.edtEmailExit(Sender: TObject);
@@ -313,9 +439,81 @@ begin
   EditGenericExit(Sender);
 end;
 
+procedure TFrmConfiguracoes.edtEmailKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+  if Key = vkReturn then
+      edtTelefone.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtEstadoEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtEstadoKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+ if Key = vkReturn then
+    edtEmail.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtInscricaoMunicipalEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtInscricaoMunicipalKeyDown(Sender: TObject;
+  var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
+begin
+ if Key = vkReturn then
+    edtCEP.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtNomeFantasiaEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtNomeFantasiaKeyDown(Sender: TObject;
+  var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
+begin
+ if Key = vkReturn then
+    edtInscricaoMunicipal.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtNumeroEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtNumeroKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if Key = vkReturn then
+    edtBairro.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtRazaoSocialEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtRazaoSocialKeyDown(Sender: TObject;
+  var Key: Word; var KeyChar: WideChar; Shift: TShiftState);
+begin
+   if Key = vkReturn then
+    edtNomeFantasia.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtRuaEnter(Sender: TObject);
+begin
+ UltimoCampoFocado := Sender as TControl;
+end;
+
 procedure TFrmConfiguracoes.edtTelefoneEnter(Sender: TObject);
 begin
-  EditGenericEnter(Sender);
+  UltimoCampoFocado := Sender as TControl;
 end;
 
 procedure TFrmConfiguracoes.edtTelefoneExit(Sender: TObject);
