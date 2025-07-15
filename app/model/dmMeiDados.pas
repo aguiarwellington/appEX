@@ -3,7 +3,11 @@ unit dmMeiDados;
 interface
 
 uses
-  System.SysUtils, System.Classes, RESTRequest4D, System.JSON,common.consts;
+  System.SysUtils,
+  System.Classes,
+  RESTRequest4D,
+  System.JSON,common.consts,
+  FMX.DialogService;
 
 type
   TDataModuleMei = class(TDataModule)
@@ -69,18 +73,42 @@ var
 begin
   Result := False;
   try
-    Response := TRequest.New.BaseURL(baseURL + '/mei/cadastrar')
+    Response := TRequest.New
+      .BaseURL(baseURL + '/mei/cadastrar')
       .Accept('application/json')
       .ContentType('application/json')
       .AddBody(Dados.ToString)
       .Post;
 
-    Result := Response.StatusCode = 201;
+    case Response.StatusCode of
+      200, 201:
+        Result := True;
+      400..499:
+        begin
+           TDialogService.ShowMessage('Erro do cliente: ' + Response.Content);
+          Result := False;
+        end;
+      500..599:
+        begin
+          TDialogService.ShowMessage('Erro interno no servidor: ' + Response.Content);
+          Result := False;
+        end;
+    else
+      begin
+        TDialogService.ShowMessage('Erro inesperado: ' + Response.Content);
+        Result := False;
+      end;
+    end;
+
   except
     on E: Exception do
+    begin
+      TDialogService.ShowMessage('Erro de conexão: ' + E.Message);
       Result := False;
+    end;
   end;
 end;
+
 
 function TDataModuleMei.BuscarDadosMeiSalvos(const UsuarioID: Integer): TJSONObject;
 var
