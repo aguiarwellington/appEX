@@ -88,10 +88,10 @@ inherited frmLogin_LgXhdpiTb: TfrmLogin_LgXhdpiTb
           inherited edtEmailCadastro: TEdit
             Size.Width = 415.000000000000000000
           end
-          inherited Label4: TLabel
-            Size.Width = 435.000000000000000000
-          end
           inherited Rectangle2: TRectangle
+            Margins.Top = 10.000000000000000000
+            Margins.Bottom = 60.000000000000000000
+            Position.Y = 506.000000000000000000
             Size.Width = 415.000000000000000000
             inherited btnVoltar: TSpeedButton
               Size.Width = 405.000000000000000000

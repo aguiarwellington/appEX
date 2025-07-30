@@ -1,0 +1,90 @@
+object formPermitions: TformPermitions
+  Left = 0
+  Top = 0
+  BorderStyle = None
+  Caption = 'formPermition '
+  ClientHeight = 198
+  ClientWidth = 379
+  Transparency = True
+  FormFactor.Width = 320
+  FormFactor.Height = 480
+  FormFactor.Devices = [Desktop]
+  DesignerMasterStyle = 0
+  object rectformPermition: TRectangle
+    Align = Client
+    Fill.Color = xFF363636
+    Size.Width = 379.000000000000000000
+    Size.Height = 198.000000000000000000
+    Size.PlatformDefault = False
+    XRadius = 10.000000000000000000
+    YRadius = 10.000000000000000000
+    object layMainLogin: TLayout
+      Align = Client
+      Size.Width = 379.000000000000000000
+      Size.Height = 198.000000000000000000
+      Size.PlatformDefault = False
+      TabOrder = 0
+      object lblTitle: TLabel
+        Align = Top
+        StyledSettings = []
+        Margins.Top = 10.000000000000000000
+        Position.Y = 70.000000000000000000
+        Size.Width = 379.000000000000000000
+        Size.Height = 17.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 15.000000000000000000
+        TextSettings.Font.StyleExt = {00060000000000000004000000}
+        TextSettings.FontColor = xFFA3A2A2
+        TextSettings.HorzAlign = Center
+        Text = 'Permitir acesso a fotos neste dispostivo ?'
+        TabOrder = 2
+      end
+      object lblPermition: TLabel
+        Align = Top
+        Cursor = crHandPoint
+        StyledSettings = []
+        HitTest = True
+        Margins.Top = 20.000000000000000000
+        Margins.Bottom = 10.000000000000000000
+        Position.Y = 107.000000000000000000
+        Size.Width = 379.000000000000000000
+        Size.Height = 30.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.FontColor = xFFEFF0F2
+        TextSettings.HorzAlign = Center
+        Text = 'Permitir acesso '
+        TabOrder = 1
+      end
+      object lblNotPermition: TLabel
+        Align = Top
+        Cursor = crHandPoint
+        StyledSettings = []
+        HitTest = True
+        Position.Y = 147.000000000000000000
+        Size.Width = 379.000000000000000000
+        Size.Height = 40.000000000000000000
+        Size.PlatformDefault = False
+        TextSettings.Font.Size = 14.000000000000000000
+        TextSettings.FontColor = xFFEFF0F2
+        TextSettings.HorzAlign = Center
+        Text = 'N'#227'o permtir acesso '
+        TabOrder = 0
+      end
+      object ImageViewer1: TImageViewer
+        Align = Top
+        Margins.Left = 150.000000000000000000
+        Margins.Top = 10.000000000000000000
+        Margins.Right = 150.000000000000000000
+        Position.X = 150.000000000000000000
+        Position.Y = 10.000000000000000000
+        Size.Width = 79.000000000000000000
+        Size.Height = 50.000000000000000000
+        Size.PlatformDefault = False
+        TabOrder = 3
+        Viewport.Width = 75.000000000000000000
+        Viewport.Height = 46.000000000000000000
+      end
+    end
+  end
+end

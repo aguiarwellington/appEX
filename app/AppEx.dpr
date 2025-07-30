@@ -17,7 +17,8 @@ uses
   UnitConfiguracoesGerais in 'views\Config\UnitConfiguracoesGerais.pas' {frmConfigGerais},
   FMessageComponents in 'components\FMessageComponents.pas' {MessageComponents: TFrame},
   FMessageSucessComponents in 'components\FMessageSucessComponents.pas' {FrMessageSucessComponents: TFrame},
-  unitUtilsCode in 'ultils\unitUtilsCode.pas';
+  unitUtilsCode in 'ultils\unitUtilsCode.pas',
+  FPermitionComponent in 'components\FPermitionComponent.pas' {formPermitions};
 
 {$R *.res}
 
@@ -27,5 +28,6 @@ begin
   Application.CreateForm(TfrmLogin, frmLogin);
   Application.CreateForm(TfrmLogin, frmLogin);
   Application.CreateForm(TfrmConfigGerais, frmConfigGerais);
+  Application.CreateForm(TformPermitions, formPermitions);
   Application.Run;
 end.

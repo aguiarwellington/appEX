@@ -1,4 +1,4 @@
-unit UnitConfiguracoes;
+﻿unit UnitConfiguracoes;
 
 interface
 
@@ -40,11 +40,11 @@ uses
   FMX.ActnList,
   System.Math,
   unitUtilsCode,
-  FMX.TabControl
-  {$IFDEF ANDROID},
+  FMX.TabControl,
+  {$IFDEF ANDROID}
   Androidapi.Helpers,
   Androidapi.JNI.Os,
-  Androidapi.JNI.JavaTypes {$ENDIF};
+  Androidapi.JNI.JavaTypes, FMX.Ani {$ENDIF};
 
 
 type
@@ -84,20 +84,23 @@ type
     rectSalvar: TRectangle;
     btnSalvar: TSpeedButton;
     layimgpai: TLayout;
-    layImgfilho: TLayout;
-    imgUser: TImage;
+    TabControl: TTabControl;
+    FloatAnimation1: TFloatAnimation;
+    TabDados: TTabItem;
+    TabFoto: TTabItem;
+    layCancelar: TLayout;
+    imgCamera: TImage;
+    imgGaleria: TImage;
+    tblCancelar: TLabel;
+    c_foto: TCircle;
     ActionList1: TActionList;
-    ActLogin: TChangeTabAction;
-    ActConta: TChangeTabAction;
+    ActDados: TChangeTabAction;
     ActFoto: TChangeTabAction;
     ActLibrary: TTakePhotoFromLibraryAction;
     ActCamera: TTakePhotoFromCameraAction;
-    c_foto: TCircle;
-    Rectangle1: TRectangle;
-    Layout8: TLayout;
-    img_foto: TImage;
-    img_library: TImage;
-    lbl_cancelar: TLabel;
+    Label17: TLabel;
+    Label18: TLabel;
+    Label19: TLabel;
     procedure FormCreate(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
     procedure imgFecharClick(Sender: TObject);
@@ -129,7 +132,6 @@ type
     procedure edtNomeFantasiaEnter(Sender: TObject);
     procedure edtInscricaoMunicipalEnter(Sender: TObject);
     procedure edtRuaEnter(Sender: TObject);
-    procedure edtNumeroEnter(Sender: TObject);
     procedure edtBairroEnter(Sender: TObject);
     procedure edtCidadeEnter(Sender: TObject);
     procedure edtEstadoEnter(Sender: TObject);
@@ -149,21 +151,40 @@ type
       var KeyChar: WideChar; Shift: TShiftState);
     procedure edtEmailKeyDown(Sender: TObject; var Key: Word;
       var KeyChar: WideChar; Shift: TShiftState);
+    procedure c_fotoClick(Sender: TObject);
+    procedure tblCancelarClick(Sender: TObject);
+    procedure layCancelarClick(Sender: TObject);
+    procedure edtRuaKeyDown(Sender: TObject; var Key: Word;
+      var KeyChar: WideChar; Shift: TShiftState);
+    procedure imgGaleriaClick(Sender: TObject);
+    procedure imgCameraClick(Sender: TObject);
+    procedure edtEmailCanFocus(Sender: TObject; var ACanFocus: Boolean);
+    procedure edtEmailTap(Sender: TObject; const Point: TPointF);
+    procedure edtNumeroTap(Sender: TObject; const Point: TPointF);
+    procedure edtNumeroEnter(Sender: TObject);
+    procedure edtCEPTap(Sender: TObject; const Point: TPointF);
+    procedure edtRuaTap(Sender: TObject; const Point: TPointF);
+    procedure edtBairroTap(Sender: TObject; const Point: TPointF);
+    procedure edtCidadeTap(Sender: TObject; const Point: TPointF);
+    procedure edtEstadoTap(Sender: TObject; const Point: TPointF);
   private
     FOriginalHeight: Single;
-    permissao: TPermissions;
     UltimoCampoFocado: TControl;
     AlturaOriginallayDados : Single;
+    Permissao: TPermissions;
+    FFotoPadrao: TBitmap;
     procedure ActLibraryDidFinishTaking(Image: TBitmap);
     procedure PreencherDadosCNPJ(Dados: TJSONObject);
     procedure PreencherDadosCEP(Dados: TJSONObject);
     procedure AjustarLayoutTeclado(TecladoAtivo: Boolean);
     procedure CarregarDadosExistentes;
     procedure ErroPermissao(Sender: TObject);
-
+    procedure CarregarFotoLocal(const NomeArquivo: string; Destino: TBitmap);
 
     function BitmapToBase64(Bitmap: TBitmap): string;
     procedure RolarAteCampoFocado(KeyboardHeight: Single);
+    procedure ActCameraDidFinishTaking(Image: TBitmap);
+    procedure RolarScrollAteFinal;
 
   public
   end;
@@ -181,14 +202,11 @@ procedure TFrmConfiguracoes.FormCreate(Sender: TObject);
 begin
   FOriginalHeight := LayDados.Height;
   permissao := TPermissions.Create;
+  TabControl.GotoVisibleTab(0);
 
   ActLibrary.OnDidFinishTaking := ActLibraryDidFinishTaking;
-  imgUser.Align := TAlignLayout.Client;
-  imgUser.WrapMode := TImageWrapMode.Stretch;
-  imgUser.HitTest := False;
+ ActCamera.OnDidFinishTaking := ActCameraDidFinishTaking;
 end;
-
-
 
 procedure TFrmConfiguracoes.FormShow(Sender: TObject);
 begin
@@ -199,9 +217,9 @@ procedure TFrmConfiguracoes.FormVirtualKeyboardHidden(Sender: TObject;
   KeyboardVisible: Boolean; const Bounds: TRect);
 begin
   scrollDados.Padding.Bottom := 0;
-if AlturaOriginallayDados > 0 then
-  layDados.Height := AlturaOriginallayDados;
-scrollDados.ViewportPosition := PointF(0, 0);
+  if AlturaOriginallayDados > 0 then
+    layDados.Height := AlturaOriginallayDados;
+  scrollDados.ViewportPosition := PointF(0, 0);
 end;
 
 procedure TFrmConfiguracoes.FormVirtualKeyboardShown(Sender: TObject;
@@ -224,9 +242,39 @@ begin
       AlturaOriginallayDados := layDados.Height;
 
     scrollDados.Padding.Bottom := KeyboardHeight;
-    layDados.Height := AlturaOriginallayDados + 50;
+    layDados.Height := AlturaOriginallayDados + 10;
 
-   RolarAteCampoFocado(KeyboardHeight);
+    if UltimoCampoFocado = edtEmail then
+      RolarScrollAteFinal
+    else
+      RolarAteCampoFocado(KeyboardHeight);
+  end;
+end;
+
+procedure TFrmConfiguracoes.RolarScrollAteFinal;
+begin
+  TThread.Queue(nil,
+    procedure
+    var
+      AlturaTotal, AlturaVisivel: Single;
+    begin
+      AlturaTotal := scrollDados.ContentBounds.Height;
+      AlturaVisivel := scrollDados.Height;
+
+      // Força o scroll até o final do conteúdo (última posição visível)
+      scrollDados.ViewportPosition := PointF(0, AlturaTotal - AlturaVisivel);
+    end);
+end;
+
+
+procedure TFrmConfiguracoes.imgGaleriaClick(Sender: TObject);
+begin
+  Permissao := TPermissions.Create;
+  try
+    Permissao.SolicitarGaleria(ActLibrary);
+  finally
+    Permissao.Free;
+    TabControl.GotoVisibleTab(0);
   end;
 end;
 
@@ -237,36 +285,63 @@ var
 begin
   if Assigned(UltimoCampoFocado) then
   begin
-    CampoPosicao := UltimoCampoFocado.LocalToAbsolute(PointF(0, 0));
-    ScrollPosicao := scrollDados.LocalToAbsolute(PointF(0, 0));
-    Deslocamento := CampoPosicao.Y - ScrollPosicao.Y;
-    scrollDados.ViewportPosition := PointF(0, Max(Deslocamento - KeyboardHeight / 2, 0));
+    TThread.Queue(nil,
+      procedure
+      begin
+        CampoPosicao := UltimoCampoFocado.LocalToAbsolute(PointF(0, 0));
+        ScrollPosicao := scrollDados.LocalToAbsolute(PointF(0, 0));
+        Deslocamento := CampoPosicao.Y - ScrollPosicao.Y;
+
+        scrollDados.ViewportPosition := PointF(0, Max(Deslocamento - (KeyboardHeight * 0.6), 0));
+      end);
   end;
 end;
 
 
+procedure TFrmConfiguracoes.tblCancelarClick(Sender: TObject);
+begin
+  //ActDados.Execute;
+  TabControl.GotoVisibleTab(0);
+end;
 
 procedure TFrmConfiguracoes.FormClose(Sender: TObject; var Action: TCloseAction);
 begin
-  permissao.DisposeOf;
+  FreeAndNil(permissao);
   Action := TCloseAction.caFree;
   FrmConfiguracoes := nil;
 end;
 
+procedure TFrmConfiguracoes.imgCameraClick(Sender: TObject);
+begin
+  Permissao := TPermissions.Create;
+  try
+   Permissao.SolicitarCamera(ActCamera);
+  finally
+    Permissao.Free;
+  end;
+end;
+
 procedure TFrmConfiguracoes.imgFecharClick(Sender: TObject);
 begin
-  Close;
+   Hide;
 end;
 
 procedure TFrmConfiguracoes.imgUserClick(Sender: TObject);
 begin
-  permissao.SolicitarGaleria(ActLibrary, ErroPermissao);
+  TabControl.GotoVisibleTab(1);
+  //permissao.SolicitarGaleria(ActLibrary, ErroPermissao);
   //lblTextImg.Visible:= false;
 end;
 
 procedure TFrmConfiguracoes.layImgfilhoClick(Sender: TObject);
 begin
+  TabControl.GotoVisibleTab(1);
   imgUserClick(Sender);
+end;
+
+procedure TFrmConfiguracoes.layCancelarClick(Sender: TObject);
+begin
+  ActDados.Execute;
 end;
 
 procedure TFrmConfiguracoes.lblTextImgClick(Sender: TObject);
@@ -292,12 +367,20 @@ begin
   end;
 end;
 
-
-
 procedure TFrmConfiguracoes.ActLibraryDidFinishTaking(Image: TBitmap);
 begin
   if Assigned(Image) then
-    imgUser.Bitmap.Assign(Image);
+    c_foto.Fill.Bitmap.Bitmap.Assign(Image);
+end;
+
+procedure TFrmConfiguracoes.ActCameraDidFinishTaking(Image: TBitmap);
+begin
+  if Assigned(Image) then
+  begin
+    c_foto.Fill.Bitmap.Bitmap.Assign(Image);
+  end
+  else
+    ShowMessage('Nenhuma imagem retornada pela câmera.');
 end;
 
 procedure TFrmConfiguracoes.edtCNPJEnter(Sender: TObject);
@@ -316,7 +399,7 @@ begin
   begin
     if Length(edtCNPJ.Text) < 14 then
     begin
-      TDialogService.ShowMessage('CNPJ inv�lido.');
+      TDialogService.ShowMessage('CNPJ inválido.');
       Exit;
     end;
     DadosCNPJ := DataModuleMei.BuscarDadosCNPJ(edtCNPJ.Text);
@@ -329,11 +412,11 @@ begin
         if Assigned(DadosCEP) then
           PreencherDadosCEP(DadosCEP)
         else
-          TDialogService.ShowMessage('CEP n�o encontrado. Preencha manualmente.');
+          TDialogService.ShowMessage('CEP não encontrado. Preencha manualmente.');
       end;
     end
     else
-      TDialogService.ShowMessage('CNPJ n�o encontrado. Preencha manualmente.');
+      TDialogService.ShowMessage('CNPJ não encontrado. Preencha manualmente.');
   end;
 
 end;
@@ -356,6 +439,11 @@ begin
     edtCidade.SetFocus;
 end;
 
+procedure TFrmConfiguracoes.edtBairroTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
+end;
+
 procedure TFrmConfiguracoes.edtCEPEnter(Sender: TObject);
 begin
    UltimoCampoFocado := Sender as TControl;
@@ -375,8 +463,13 @@ begin
     if Assigned(DadosCEP) then
       PreencherDadosCEP(DadosCEP)
     else
-      TDialogService.ShowMessage('CEP n�o encontrado. Preencha manualmente.');
+      TDialogService.ShowMessage('CEP não encontrado. Preencha manualmente.');
   end;
+end;
+
+procedure TFrmConfiguracoes.edtCEPTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
 end;
 
 procedure TFrmConfiguracoes.edtCEPTyping(Sender: TObject);
@@ -395,6 +488,11 @@ procedure TFrmConfiguracoes.edtCidadeKeyDown(Sender: TObject; var Key: Word;
 begin
    if Key = vkReturn then
     edtEstado.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtCidadeTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
 end;
 
 procedure TFrmConfiguracoes.EditFocus(Sender: TObject);
@@ -429,6 +527,12 @@ begin
   AjustarLayoutTeclado(False);
 end;
 
+procedure TFrmConfiguracoes.edtEmailCanFocus(Sender: TObject;
+  var ACanFocus: Boolean);
+begin
+  UltimoCampoFocado := Sender as TControl;
+end;
+
 procedure TFrmConfiguracoes.edtEmailEnter(Sender: TObject);
 begin
   UltimoCampoFocado := Sender as TControl;
@@ -446,6 +550,11 @@ begin
       edtTelefone.SetFocus;
 end;
 
+procedure TFrmConfiguracoes.edtEmailTap(Sender: TObject; const Point: TPointF);
+begin
+ edtEmail.SetFocus;
+end;
+
 procedure TFrmConfiguracoes.edtEstadoEnter(Sender: TObject);
 begin
  UltimoCampoFocado := Sender as TControl;
@@ -456,6 +565,11 @@ procedure TFrmConfiguracoes.edtEstadoKeyDown(Sender: TObject; var Key: Word;
 begin
  if Key = vkReturn then
     edtEmail.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtEstadoTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
 end;
 
 procedure TFrmConfiguracoes.edtInscricaoMunicipalEnter(Sender: TObject);
@@ -482,9 +596,18 @@ begin
     edtInscricaoMunicipal.SetFocus;
 end;
 
+
 procedure TFrmConfiguracoes.edtNumeroEnter(Sender: TObject);
 begin
- UltimoCampoFocado := Sender as TControl;
+  UltimoCampoFocado := Sender as TControl;
+
+  // 🔁 Reforça o foco com pequeno delay
+  TThread.Queue(nil,
+    procedure
+    begin
+      if Sender is TEdit then
+        TEdit(Sender).SetFocus;
+    end);
 end;
 
 procedure TFrmConfiguracoes.edtNumeroKeyDown(Sender: TObject; var Key: Word;
@@ -492,6 +615,11 @@ procedure TFrmConfiguracoes.edtNumeroKeyDown(Sender: TObject; var Key: Word;
 begin
    if Key = vkReturn then
     edtBairro.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtNumeroTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
 end;
 
 procedure TFrmConfiguracoes.edtRazaoSocialEnter(Sender: TObject);
@@ -508,12 +636,24 @@ end;
 
 procedure TFrmConfiguracoes.edtRuaEnter(Sender: TObject);
 begin
- UltimoCampoFocado := Sender as TControl;
+  UltimoCampoFocado := Sender as TControl;
+end;
+
+procedure TFrmConfiguracoes.edtRuaKeyDown(Sender: TObject; var Key: Word;
+  var KeyChar: WideChar; Shift: TShiftState);
+begin
+  if Key = vkReturn then
+    edtNumero.SetFocus;
+end;
+
+procedure TFrmConfiguracoes.edtRuaTap(Sender: TObject; const Point: TPointF);
+begin
+   TEdit(Sender).SetFocus;
 end;
 
 procedure TFrmConfiguracoes.edtTelefoneEnter(Sender: TObject);
 begin
-  UltimoCampoFocado := Sender as TControl;
+    UltimoCampoFocado := Sender as TControl;
 end;
 
 procedure TFrmConfiguracoes.edtTelefoneExit(Sender: TObject);
@@ -529,7 +669,7 @@ end;
 
 procedure TFrmConfiguracoes.ErroPermissao(Sender: TObject);
 begin
-  showmessage('Voc� n�o possui permiss�o para esse recurso');
+  showmessage('Você não possui permissão para esse recurso');
 end;
 
 procedure TFrmConfiguracoes.AjustarLayoutTeclado(TecladoAtivo: Boolean);
@@ -557,7 +697,6 @@ begin
   end;
 end;
 
-
 function BitmapToBase64(Bitmap: TBitmap): string;
 var
   Stream: TMemoryStream;
@@ -574,7 +713,6 @@ begin
     Stream.Free;
   end;
 end;
-
 
 procedure TFrmConfiguracoes.PreencherDadosCNPJ(Dados: TJSONObject);
 begin
@@ -618,18 +756,48 @@ begin
     edtEstado.Text := Json.GetValue<string>('endereco_estado', '');
     edtCEP.Text := MascaraCEP(Json.GetValue<string>('endereco_cep', ''));
 
-    // Carregar imagem
-    FotoBase64 := Json.GetValue<string>('foto', '');
-    LoadBase64ImageToImageControl(FotoBase64, imgUser);
+// Carregar imagem local (ex: foto_usuario_ID.jpg)
+    CarregarFotoLocal('foto_usuario_' + TSession.id.ToString + '.jpg', c_foto.Fill.Bitmap.Bitmap);
+  end;
+end;
 
-    // Ocultar texto da imagem, se houver imagem carregada
-    //lblTextImg.Visible := imgUser.Bitmap.IsEmpty;
+procedure TFrmConfiguracoes.CarregarFotoLocal(const NomeArquivo: string; Destino: TBitmap);
+var
+  Caminho: string;
+begin
+  Caminho := TPath.Combine(TPath.GetDocumentsPath, NomeArquivo);
+  if TFile.Exists(Caminho) then
+    Destino.LoadFromFile(Caminho)
+  else
+    Destino.Clear(TAlphaColors.Null);
+end;
+
+procedure TFrmConfiguracoes.c_fotoClick(Sender: TObject);
+begin
+    ActFoto.Execute;
+end;
+
+function SalvarImagemLocal(Bitmap: TBitmap; const NomeArquivo: string): string;
+var
+  Caminho: string;
+begin
+  Caminho := TPath.Combine(TPath.GetDocumentsPath, NomeArquivo);
+  try
+    Bitmap.SaveToFile(Caminho);
+    Result := Caminho;
+  except
+    on E: Exception do
+    begin
+      ShowMessage('Erro ao salvar imagem: ' + E.Message);
+      Result := '';
+    end;
   end;
 end;
 
 procedure TFrmConfiguracoes.btnSalvarClick(Sender: TObject);
 var
   Dados: TJSONObject;
+  CaminhoFoto: string;
 begin
   Dados := TJSONObject.Create;
   try
@@ -647,22 +815,34 @@ begin
     Dados.AddPair('email', edtEmail.Text);
     Dados.AddPair('telefone', edtTelefone.Text);
 
-    if imgUser.Bitmap.IsEmpty then
-      Dados.AddPair('foto', '')
-    else
-      Dados.AddPair('foto', BitmapToBase64(imgUser.Bitmap));
+    // Salva a foto localmente
+    try
+      if not c_foto.Fill.Bitmap.Bitmap.IsEmpty then
+        CaminhoFoto := SalvarImagemLocal(c_foto.Fill.Bitmap.Bitmap,
+          'foto_usuario_' + TSession.id.ToString + '.jpg');
+    except
+      on E: Exception do
+        ShowMessage('Erro ao salvar a foto: ' + E.Message);
+    end;
 
-    if DataModuleMei.SalvarDadosNoBanco(Dados) then
-    begin
-      TDialogService.ShowMessage('Dados salvos com sucesso!');
-      Close;
-    end
-    else
-      TDialogService.ShowMessage('Erro ao salvar os dados. Tente novamente.');
+    try
+      if DataModuleMei.SalvarDadosNoBanco(Dados) then
+      begin
+        TDialogService.ShowMessage('Dados salvos com sucesso!');
+        // Evite fechar se isso não for modal
+        //Close;
+      end
+      else
+        TDialogService.ShowMessage('Erro ao salvar os dados. Tente novamente.');
+    except
+      on E: Exception do
+        ShowMessage('Erro ao salvar no banco: ' + E.Message);
+    end;
   finally
     Dados.Free;
   end;
 end;
+
 
 end.
 

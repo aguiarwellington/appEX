@@ -365,6 +365,10 @@
             <DesignClass>TFrame</DesignClass>
         </DCCReference>
         <DCCReference Include="ultils\unitUtilsCode.pas"/>
+        <DCCReference Include="components\FPermitionComponent.pas">
+            <Form>formPermitions</Form>
+            <FormType>fmx</FormType>
+        </DCCReference>
         <BuildConfiguration Include="Base">
             <Key>Base</Key>
         </BuildConfiguration>

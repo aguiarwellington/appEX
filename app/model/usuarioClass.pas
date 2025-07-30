@@ -12,6 +12,7 @@ type
     class var FlastName: string;
     class var Frequires2FA: Boolean;
     class var Fbiometria: Boolean;
+    class var FLoginStatus: string;
   public
     class property id: integer read Fid write Fid;
     class property EMAIL: string read FEMAIL write FEMAIL;
@@ -20,6 +21,7 @@ type
     class property lastName: string read FlastName write FlastName;
     class property requires2FA: Boolean read Frequires2FA write Frequires2FA;
     class property biometria: Boolean read Fbiometria write Fbiometria;
+    class property LoginStatus: string read FLoginStatus write FLoginStatus;
   end;
 
 implementation

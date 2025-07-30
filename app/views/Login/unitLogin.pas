@@ -1,4 +1,4 @@
-unit unitLogin;
+Ôªøunit unitLogin;
 
 interface
 
@@ -87,7 +87,6 @@ type
     Label5: TLabel;
     lblTextUserCadastro: TLabel;
    BiometricAuth: TBiometricAuth;
-    Label4: TLabel;
     lblMessage: TLabel;
     SBNovaConta: TScrollBox;
     showPassword1: TImageControl;
@@ -192,7 +191,6 @@ begin
   );
 end;
 
-
 procedure TfrmLogin.btnVoltarClick(Sender: TObject);
 begin
    TabControl.GotoVisibleTab(0);
@@ -207,7 +205,6 @@ begin
   BiometricAuth.OnAuthenticateSuccess := BiometricAuthAuthenticateSuccess;
   BiometricAuth.OnAuthenticateFail := BiometricAuthAuthenticateFail;
 
-  // Atribui o evento OnEnter para cada campo manualmente
   edtNome.OnEnter := AjustarScroll;
   edtUltimoNome.OnEnter := AjustarScroll;
   edtEmailCadastro.OnEnter := AjustarScroll;
@@ -252,7 +249,7 @@ begin
     SBNovaConta.Padding.Bottom := KeyboardHeight;
     Layout4.Height := AlturaOriginalLayout4 + 50;
 
-    // Rola atÈ o campo focado
+    // Rola at√© o campo focado
     for i := 0 to Layout4.ChildrenCount - 1 do
     begin
       if (Layout4.Children[i] is TEdit) and (TEdit(Layout4.Children[i]).IsFocused) then
@@ -277,8 +274,6 @@ begin
   end;
 end;
 
-
-
 procedure TfrmLogin.ShowPasswordClick(Sender: TObject);
 begin
   if edtSenhaCad.Password then
@@ -299,11 +294,10 @@ procedure TfrmLogin.AjustarScroll(Sender: TObject);
 begin
   if (Sender is TControl) and Assigned(SBNovaConta) then
   begin
-    // Rola a tela verticalmente atÈ o campo, com pequeno deslocamento
+    // Rola a tela verticalmente at√© o campo, com pequeno deslocamento
     SBNovaConta.ViewportPosition := PointF(0, (Sender as TControl).Position.Y - 10);
   end;
 end;
-
 
 procedure TfrmLogin.CarregarLoginSalvo;
 var
@@ -371,12 +365,11 @@ begin
   Ini := TIniFile.Create(TPath.Combine(TPath.GetDocumentsPath, 'config.ini'));
   try
     Ini.WriteInteger('Login', 'UserID', UserID);
-    Ini.UpdateFile; // forÁa escrita no disco
+    Ini.UpdateFile; // for√ßa escrita no disco
   finally
     Ini.Free;
   end;
 end;
-
 
 procedure TfrmLogin.showPassword1Click(Sender: TObject);
 begin
@@ -392,107 +385,52 @@ end;
 procedure TfrmLogin.BiometricAuthAuthenticateFail(Sender: TObject;
   const FailReason: TBiometricFailReason; const ResultMessage: string);
 begin
-  MostrarMensagemUsuario('Falha na autenticaÁ„o biomÈtrica: ' + ResultMessage);
+  MostrarMensagemUsuario('Falha na autentica√ß√£o biom√©trica: ' + ResultMessage);
 end;
-
 
 procedure TfrmLogin.TerminateLoading(Sender: TObject);
 begin
+  if (Trim(edtEmail.Text) = '') or (Trim(edtSenha.Text) = '') then
+    Exit;
 
-  if (Trim(edtEmail.Text) = '') or (Trim(edtSenha.Text) = '')then
-    exit;
+  if TSession.LoginStatus = 'pending_code' then
+  begin
+    MostrarMensagemUsuario('Seu c√≥digo expirou ou ainda n√£o foi validado. Redirecionando...');
 
-  if TSession.id > 0 then
+    if not Assigned(AutenticacaoCode) then
+      Application.CreateForm(TAutenticacaoCode, AutenticacaoCode);
+    AutenticacaoCode.Show;
+    Self.Hide;
+    Exit;
+  end;
+
+  if TSession.LoginStatus = 'success' then
   begin
     SalvarLoginLocal(TSession.id);
 
-    TThread.CreateAnonymousThread(
-      procedure
-      var
-        SessaoValida, CodigoExiste: Boolean;
-        resp: IResponse;
-        jsonRequest, jsonResponse: TJSONObject;
+    if TSession.requires2FA and TSession.biometria then
+    begin
+      if BiometricAuth.IsSupported and BiometricAuth.CanAuthenticate then
       begin
-        SessaoValida := False;
-        CodigoExiste := False;
-        jsonRequest := nil;
-        jsonResponse := nil;
-
-        try
-          SessaoValida := dm.ValidarSessao;
-
-          jsonRequest := TJSONObject.Create;
-          jsonRequest.AddPair('user_id', TJSONNumber.Create(TSession.id));
-
-          resp := TRequest.New
-            .BaseURL(baseURL + '/usuarios/verificar-codigo-existente')
-            .AddBody(jsonRequest.ToString)
-            .Accept('application/json')
-            .Post;
-
-          if Assigned(resp) and (resp.Content <> '') then
-          begin
-            jsonResponse := TJSONObject.ParseJSONValue(resp.Content) as TJSONObject;
-            if Assigned(jsonResponse) then
-              CodigoExiste := jsonResponse.GetValue<Boolean>('codigo_existe', False)
-            else
-              raise Exception.Create('Erro ao interpretar resposta JSON do servidor.');
-          end
-          else
-            raise Exception.Create('Resposta do servidor inv·lida ou vazia.');
-
-        except
-          on E: Exception do
-          begin
-            SessaoValida := False;
-            TThread.Synchronize(nil,
-              procedure
-              begin
-                MostrarMensagemUsuario('Erro ao verificar sess„o: ' + E.Message);
-              end
-            );
-          end;
-        end;
-
-        TThread.Synchronize(nil,
-          procedure
-          begin
-            if not SessaoValida then
-            begin
-              MostrarMensagemUsuario('Sess„o inv·lida. Verifique o servidor.');
-              Exit;
-            end;
-
-            if not CodigoExiste then
-            begin
-              if not Assigned(AutenticacaoCode) then
-                Application.CreateForm(TAutenticacaoCode, AutenticacaoCode);
-              AutenticacaoCode.Show;
-              Exit;
-            end;
-
-            // Acesso direto sem biometria
-            if not Assigned(frmClientes) then
-              Application.CreateForm(TfrmClientes, frmClientes);
-            frmClientes.Show;
-            Self.Hide;
-          end
-        );
-
-        try
-          FreeAndNil(jsonRequest);
-          FreeAndNil(jsonResponse);
-        except
-          // proteÁ„o contra falha no FreeAndNil
-        end;
+        BiometricAuth.OnAuthenticateSuccess := BiometricAuthAuthenticateSuccess;
+        BiometricAuth.OnAuthenticateFail := BiometricAuthAuthenticateFail;
+        BiometricAuth.Authenticate;
+        Exit;
       end
-    ).Start;
-  end
-  else
-    MostrarMensagemUsuario('Login falhou. Verifique e-mail e senha.');
+      else
+        MostrarMensagemUsuario('Biometria n√£o suportada no dispositivo.');
+    end;
+
+    // Acesso direto sem biometria
+    if not Assigned(frmClientes) then
+      Application.CreateForm(TfrmClientes, frmClientes);
+    frmClientes.Show;
+    Self.Hide;
+    Exit;
+  end;
+
+  MostrarMensagemUsuario('Login falhou. Verifique e-mail e senha.');
 end;
-
-
 
  procedure TfrmLogin.MostrarMensagemUsuario(const Msg: string);
 begin
@@ -521,7 +459,7 @@ end;
 
 procedure TfrmLogin.MostrarMensagemUsuarioCadastro(const Msg: string);
 begin
- {* lblTextUserCadastro.Visible := false;
+  lblTextUserCadastro.Visible := false;
   lblTextUserCadastro.Text := Msg;
 
   TThread.CreateAnonymousThread(
@@ -540,7 +478,7 @@ begin
         end
       );
     end
-  ).Start;     *}
+  ).Start;
 end;
 
 procedure TfrmLogin.TerminateCadastro(Sender: TObject);
@@ -564,7 +502,6 @@ begin
   MsgSucesso.Parent := Self;
   MsgSucesso.MessageSucess(ATitulo, AMensagem, OnClose);
 end;
-
 
 procedure TfrmLogin.lblNovaContaClick(Sender: TObject);
 begin
@@ -597,190 +534,196 @@ begin
 
   if Nome = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "Nome" È obrigatÛrio.');
+    MostrarMensagemErro('Error','O campo "Nome" √© obrigat√≥rio.');
     Exit;
   end;
 
   if Sobrenome = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "⁄ltimo nome" È obrigatÛrio.');
+    MostrarMensagemErro('Error','O campo "√öltimo nome" √© obrigat√≥rio.');
     Exit;
   end;
 
   if Email = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "E-mail" È obrigatÛrio.');
+     MostrarMensagemErro('Error','O campo "E-mail" √© obrigat√≥rio.');
     Exit;
   end;
 
   if Senha = '' then
   begin
-    MostrarMensagemUsuarioCadastro('O campo "Senha" È obrigatÛrio.');
+    MostrarMensagemErro('Error','O campo "Senha" √© obrigat√≥rio.');
     Exit;
   end;
 
   CadastroOk := False;
 
-  TLoading.ExecuteThread(
+ TLoading.ExecuteThread(
   procedure
   begin
-
     try
-     dm.cadastrarUsuario(Nome, Sobrenome, Email, Senha);
-     CadastroOk := True;
+      dm.cadastrarUsuario(Nome, Sobrenome, Email, Senha);
+      CadastroOk := True;
     except
       on E: Exception do
       begin
         TThread.Synchronize(nil,
-          procedure begin
-            MostrarMensagemErro(
-                  'Error',
-                  'E-mail j· cadastrado. Insira um diferente'
-                );
+          procedure
+          begin
+            if Pos('Duplicate', E.Message) > 0 then
+              MostrarMensagemErro('Erro', 'E-mail j√° cadastrado. Insira um diferente.')
+            else if Pos('Connection', '') > 0 then
+              MostrarMensagemErro('Erro', 'Falha de conex√£o. Verifique se o servidor est√° ativo.')
+            else
+              MostrarMensagemErro('Erro', 'Falha ao cadastrar. Verifique se o servidor est√° ativo. ');
           end
         );
       end;
     end;
   end,
   TerminateCadastro
-  );
+);
 end;
 
 procedure TfrmLogin.btnAcessarEmailClick(Sender: TObject);
 begin
-  SalvarLoginLocal(TSession.id);
-
   if TSession.id <= 0 then
   begin
-    TabControl.GotoVisibleTab(2);
+    TabControl.GotoVisibleTab(2); // Vai pro login normal
     Exit;
   end;
 
   TThread.CreateAnonymousThread(
     procedure
     var
-      SessaoValida, CodigoExiste, BiometriaAtiva: Boolean;
+      SessaoValida, CodigoValidado, BiometriaAtiva: Boolean;
       resp: IResponse;
       jsonRequest, jsonResponse: TJSONObject;
     begin
       SessaoValida := False;
-      CodigoExiste := False;
+      CodigoValidado := False;
       BiometriaAtiva := False;
       jsonRequest := nil;
       jsonResponse := nil;
 
       try
-        SessaoValida := dm.ValidarSessao;
-
-        jsonRequest := TJSONObject.Create;
-        jsonRequest.AddPair('user_id', TJSONNumber.Create(TSession.id));
-
         try
-          resp := TRequest.New
-            .BaseURL(baseURL + '/usuarios/verificar-codigo-existente')
-            .AddBody(jsonRequest.ToString)
-            .Accept('application/json')
-            .Post;
-        except
-          on E: Exception do
+          // Verifica se sess√£o est√° v√°lida
+          try
+            SessaoValida := dm.ValidarSessao;
+          except
+            on E: Exception do
+            begin
+              SessaoValida := False;
+              TThread.Synchronize(nil,
+                procedure
+                begin
+                  MostrarMensagemErro('Conex√£o', 'N√£o foi poss√≠vel conectar ao servidor. Verifique sua internet ou tente novamente.');
+                end);
+              Exit;
+            end;
+          end;
+
+          if not SessaoValida then
           begin
             TThread.Synchronize(nil,
               procedure
               begin
-                MostrarMensagemErro(
-                  'Falha de Conex„o',
-                  'N„o foi possÌvel conectar ao servidor. Verifique sua internet ou tente novamente mais tarde.' + sLineBreak + 'Detalhes: ' + E.Message
-                );
-              end
-            );
+                MostrarMensagemErro('Conex√£o', 'Sess√£o inv√°lida ou expirada.');
+              end);
             Exit;
           end;
-        end;
 
-        if not Assigned(resp) then
-          raise Exception.Create('O servidor n„o respondeu. Tente novamente em alguns instantes.');
+          // Monta requisi√ß√£o para verificar biometria e c√≥digo
+          jsonRequest := TJSONObject.Create;
+          jsonRequest.AddPair('user_id', TJSONNumber.Create(TSession.id));
 
-        if Trim(resp.Content) = '' then
-          raise Exception.Create('Resposta do servidor est· vazia. Aguarde e tente novamente.');
-
-        jsonResponse := TJSONObject.ParseJSONValue(resp.Content) as TJSONObject;
-
-        if not Assigned(jsonResponse) then
-          raise Exception.Create('Erro ao interpretar resposta do servidor. Por favor, tente mais tarde.');
-
-        CodigoExiste := jsonResponse.GetValue<Boolean>('codigo_existe', False);
-        BiometriaAtiva := jsonResponse.GetValue<Boolean>('biometria_ativa', False);
-
-      except
-        on E: Exception do
-        begin
-          SessaoValida := False;
-          TThread.Synchronize(nil,
-            procedure
+          try
+            resp := TRequest.New
+              .BaseURL(baseURL + '/usuarios/verificar-codigo-existente')
+              .AddBody(jsonRequest.ToString)
+              .Accept('application/json')
+              .Post;
+          except
+            on E: Exception do
             begin
-              MostrarMensagemErro(
-                'Erro na Sess„o',
-                'Erro durante a verificaÁ„o da sess„o. Tente novamente.' + sLineBreak + 'Detalhes: ' + E.Message
-              );
-            end
-          );
-        end;
-      end;
-
-      TThread.Synchronize(nil,
-        procedure
-        begin
-          if not SessaoValida then
-          begin
-            MostrarMensagemErro(
-              'Sess„o Inv·lida',
-              'Sua sess„o expirou ou n„o È v·lida. Verifique sua conex„o com o servidor.'
-            );
-            TabControl.GotoVisibleTab(2);
-            Exit;
-          end;
-
-          if not CodigoExiste then
-          begin
-            MostrarMensagemErro(
-              '2FA N„o Encontrado',
-              'CÛdigo de verificaÁ„o 2FA n„o encontrado. Complete a autenticaÁ„o de dois fatores.'
-            );
-            TabControl.GotoVisibleTab(2);
-            Exit;
-          end;
-
-          if BiometriaAtiva then
-          begin
-            if BiometricAuth.IsSupported and BiometricAuth.CanAuthenticate then
-            begin
-              BiometricAuth.OnAuthenticateSuccess := BiometricAuthAuthenticateSuccess;
-              BiometricAuth.OnAuthenticateFail := BiometricAuthAuthenticateFail;
-              BiometricAuth.Authenticate;
+              TThread.Synchronize(nil,
+                procedure
+                begin
+                  MostrarMensagemErro('Conex√£o', 'Falha ao verificar 2FA: ' + E.Message);
+                end);
               Exit;
-            end
-            else
-            begin
-              MostrarMensagemErro(
-                'Biometria IndisponÌvel',
-                'Biometria n„o disponÌvel ou n„o suportada neste dispositivo.'
-              );
             end;
           end;
 
-          TabControl.GotoVisibleTab(2);
-        end
-      );
+          if (not Assigned(resp)) or (resp.Content.Trim = '') then
+          begin
+            TThread.Synchronize(nil,
+              procedure
+              begin
+                MostrarMensagemErro('Conex√£o', 'N√£o foi poss√≠vel conectar ao servidor. Verifique sua internet ou tente novamente.');
+              end);
+            Exit;
+          end;
 
-      try
+          jsonResponse := TJSONObject.ParseJSONValue(resp.Content) as TJSONObject;
+
+          if Assigned(jsonResponse) then
+          begin
+            CodigoValidado := jsonResponse.GetValue<Boolean>('codigo_validado', False);
+            BiometriaAtiva := jsonResponse.GetValue<Boolean>('biometria_ativa', False);
+          end;
+        except
+          on E: Exception do SessaoValida := False;
+        end;
+
+        TThread.Synchronize(nil,
+          procedure
+          begin
+            if not SessaoValida then
+            begin
+              MostrarMensagemErro('Sess√£o Expirada', 'Sua sess√£o expirou. Fa√ßa login novamente.');
+              TabControl.GotoVisibleTab(2);
+              Exit;
+            end;
+
+            if not CodigoValidado then
+            begin
+              MostrarMensagemErro('2FA Pendente', 'C√≥digo de verifica√ß√£o 2FA n√£o validado.');
+              TabControl.GotoVisibleTab(2);
+              Exit;
+            end;
+
+            SalvarLoginLocal(TSession.id);
+
+            if BiometriaAtiva then
+            begin
+              if BiometricAuth.IsSupported and BiometricAuth.CanAuthenticate then
+              begin
+                BiometricAuth.OnAuthenticateSuccess := BiometricAuthAuthenticateSuccess;
+                BiometricAuth.OnAuthenticateFail := BiometricAuthAuthenticateFail;
+                BiometricAuth.Authenticate;
+                Exit;
+              end
+              else
+              begin
+                MostrarMensagemErro('Biometria Indispon√≠vel', 'Seu dispositivo n√£o suporta biometria.');
+                TabControl.GotoVisibleTab(2);
+                Exit;
+              end;
+            end;
+
+            TabControl.GotoVisibleTab(2);
+          end
+        );
+      finally
         FreeAndNil(jsonRequest);
         FreeAndNil(jsonResponse);
-      except
-        // ProteÁ„o contra erros ao liberar objetos
       end;
     end
   ).Start;
 end;
+
 
 
 procedure TfrmLogin.MostrarMensagemErro(ATitulo, AMensagem: string);
@@ -791,7 +734,6 @@ begin
   MsgErro.Parent := Self;
   MsgErro.MostrarErro(ATitulo, AMensagem);
 end;
-
 
 end.
 

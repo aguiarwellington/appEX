@@ -87,18 +87,19 @@ procedure Tdm.Login(email, senha: string);
 var
   resp: IResponse;
   jsonRequest, jsonResponse: TJSONObject;
+  idStr: string;
 begin
   jsonRequest := TJSONObject.Create;
   try
-     jsonRequest.AddPair('email', LowerCase(Trim(email)));
+    jsonRequest.AddPair('email', LowerCase(Trim(email)));
     jsonRequest.AddPair('password', senha);
 
     try
       resp := TRequest.New
-              .BaseURL(baseURL + '/usuarios/login')
-              .AddBody(jsonRequest.ToString)
-              .Accept('application/json')
-              .Post;
+        .BaseURL(baseURL + '/usuarios/login')
+        .AddBody(jsonRequest.ToString)
+        .Accept('application/json')
+        .Post;
 
       if resp.StatusCode = 200 then
       begin
@@ -106,7 +107,16 @@ begin
         try
           if Assigned(jsonResponse) then
           begin
-            TSession.id := jsonResponse.GetValue<integer>('id', 0);
+            TSession.LoginStatus := jsonResponse.GetValue<string>('status', '');
+
+            // ✅ Sempre extrai o ID, mesmo que o status seja pending_code
+            if jsonResponse.TryGetValue<string>('id', idStr) then
+              TSession.id := StrToIntDef(idStr, 0)
+            else if jsonResponse.TryGetValue<string>('user_id', idStr) then
+              TSession.id := StrToIntDef(idStr, 0)
+            else
+              TSession.id := 0;
+
             TSession.EMAIL := jsonResponse.GetValue<string>('email', '');
             TSession.requires2FA := jsonResponse.GetValue<boolean>('requires_2fa', false);
           end;
@@ -125,6 +135,7 @@ begin
   end;
 end;
 
+
 function Tdm.ValidarSessao: Boolean;
 var
   resp: IResponse;
@@ -136,6 +147,8 @@ begin
     Exit;
 
   jsonRequest := TJSONObject.Create;
+  jsonResponse := nil;
+
   try
     jsonRequest.AddPair('user_id', TJSONNumber.Create(TSession.id));
 
@@ -146,23 +159,25 @@ begin
         .Accept('application/json')
         .Post;
 
-      if resp.StatusCode = 200 then
+      if (resp.StatusCode = 200) and (resp.Content.Trim <> '') then
       begin
         jsonResponse := TJSONObject.ParseJSONValue(resp.Content) as TJSONObject;
-        try
+        if Assigned(jsonResponse) then
           Result := jsonResponse.GetValue<Boolean>('sessao_valida', False);
-        finally
-          jsonResponse.Free;
-        end;
       end;
     except
       on E: Exception do
+      begin
         Result := False;
+      end;
     end;
+
   finally
     jsonRequest.Free;
+    jsonResponse.Free;
   end;
 end;
+
 
 end.
 

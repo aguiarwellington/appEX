@@ -88,10 +88,10 @@ inherited frmLogin_XLgXhdpiTb: TfrmLogin_XLgXhdpiTb
           inherited edtEmailCadastro: TEdit
             Size.Width = 735.000000000000000000
           end
-          inherited Label4: TLabel
-            Size.Width = 755.000000000000000000
-          end
           inherited Rectangle2: TRectangle
+            Margins.Top = 10.000000000000000000
+            Margins.Bottom = 60.000000000000000000
+            Position.Y = 506.000000000000000000
             Size.Width = 735.000000000000000000
             inherited btnVoltar: TSpeedButton
               Size.Width = 725.000000000000000000
